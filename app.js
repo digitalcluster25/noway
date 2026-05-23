@@ -580,7 +580,6 @@ function voteCandidate(vote) {
       image: candidate.image,
       tags: candidate.tags,
       note: candidate.note,
-      image: "",
       rating: "like",
       reasons: [],
       fromDiscover: true,
@@ -917,6 +916,19 @@ function downloadText(filename, content, type) {
   URL.revokeObjectURL(url);
 }
 
+async function screenshotReference(url) {
+  const response = await fetch("/api/screenshot-reference", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url }),
+  });
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.error || "Не удалось сделать screenshot");
+  }
+  return result;
+}
+
 function bindEvents() {
   document.addEventListener("click", (event) => {
     const target = event.target;
@@ -1003,7 +1015,24 @@ function bindEvents() {
 
   document.querySelector("#reference-form").addEventListener("submit", async (event) => {
     event.preventDefault();
-    const image = await readImageFile(document.querySelector("#reference-image").files[0]);
+    const status = document.querySelector("#reference-status");
+    const url = document.querySelector("#reference-url").value.trim();
+    const file = document.querySelector("#reference-image").files[0];
+    let image = await readImageFile(file);
+    let screenshot = null;
+    status.textContent = "";
+
+    if (url && !image) {
+      status.textContent = "Делаю screenshot URL...";
+      try {
+        screenshot = await screenshotReference(url);
+        image = screenshot.preview;
+        status.textContent = "Screenshot готов и добавлен в карточку.";
+      } catch (error) {
+        status.textContent = `${error.message}. Карточка добавлена без screenshot.`;
+      }
+    }
+
     const tags = document
       .querySelector("#reference-tags")
       .value.split(",")
@@ -1012,9 +1041,9 @@ function bindEvents() {
 
     state.references.unshift({
       id: `manual-${Date.now()}`,
-      title: document.querySelector("#reference-title").value.trim(),
-      source: "Manual import",
-      url: document.querySelector("#reference-url").value.trim(),
+      title: document.querySelector("#reference-title").value.trim() || screenshot?.title || "Manual reference",
+      source: screenshot?.source || "Manual import",
+      url,
       direction: document.querySelector("#reference-direction").value,
       visual: "visual-manual",
       tags: ["manual", ...tags],

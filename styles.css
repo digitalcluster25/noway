@@ -467,6 +467,14 @@ select {
   grid-column: span 2;
 }
 
+.form-status {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
 .file-field {
   display: grid;
   place-items: center;

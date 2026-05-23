@@ -15,6 +15,7 @@
 - Design Language слой: поиск строится по визуальным паттернам, а не по отрасли.
 - Понравившиеся кандидаты автоматически попадают в Moodboard Review.
 - Screenshot-style web previews без копирования чужих сайтов и ассетов.
+- Backend screenshot API: URL в ручном импорте превращается в preview-картинку.
 - Загрузка изображения или скриншота в карточку референса.
 - Финальная visual strategy, которая собирается из выбранных формулировок и оценок.
 - 3 concept routes.
@@ -45,7 +46,7 @@ cd /opt/noway
 docker compose up -d --build
 ```
 
-Контейнер использует Caddy только как внутренний static server.
+Контейнер использует Node/Express и Playwright: отдает frontend и делает screenshots URL.
 Наружный HTTPS и домен обслуживает Traefik через Docker labels.
 
 Обновление после нового push:

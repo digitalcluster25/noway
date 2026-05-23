@@ -684,7 +684,11 @@ function renderLanguage() {
 
 function buildSearchQuery() {
   const signal = getTasteSignal();
-  const likedTags = signal.likedTags.map(([tag]) => tag).slice(0, 4);
+  const ignoredSearchTags = new Set(["typography", "layout", "photo", "proof", "minimal", "premium-service", "search", "reference"]);
+  const likedTags = signal.likedTags
+    .map(([tag]) => tag)
+    .filter((tag) => !ignoredSearchTags.has(tag))
+    .slice(0, 4);
   const dislikedTags = signal.dislikedTags.map(([tag]) => tag).slice(0, 3);
   const chipSearchMap = {
     "Редизайн существующего сайта": "website redesign",

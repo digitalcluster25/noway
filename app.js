@@ -972,6 +972,9 @@ async function screenshotReference(url) {
 function bindEvents() {
   document.addEventListener("click", (event) => {
     const target = event.target;
+    const goButton = target.closest("[data-go]");
+    const stepButton = target.closest(".step");
+    const filterButton = target.closest(".filter");
 
     if (target.matches("[data-chip]")) {
       const group = target.dataset.chipGroup;
@@ -1015,18 +1018,18 @@ function bindEvents() {
       saveState();
     }
 
-    if (target.matches("[data-go]")) {
-      setStep(target.dataset.go);
+    if (goButton) {
+      setStep(goButton.dataset.go);
     }
 
-    if (target.matches(".step")) {
-      setStep(target.dataset.step);
+    if (stepButton) {
+      setStep(stepButton.dataset.step);
     }
 
-    if (target.matches(".filter")) {
+    if (filterButton) {
       document.querySelectorAll(".filter").forEach((filter) => filter.classList.remove("is-active"));
-      target.classList.add("is-active");
-      renderReferences(target.dataset.filter);
+      filterButton.classList.add("is-active");
+      renderReferences(filterButton.dataset.filter);
       saveState();
     }
 

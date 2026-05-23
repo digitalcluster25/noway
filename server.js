@@ -114,6 +114,34 @@ function inferDesignTags(text) {
   return [...new Set(tags.length ? tags : ["search", "reference"])];
 }
 
+function scoreReferenceResult(item) {
+  const url = item.url.toLowerCase();
+  const text = `${item.title} ${item.description}`.toLowerCase();
+  const badUrlParts = ["/blog", "/article", "/articles", "/news", "/magazine", "/websites/", "/inspiration", "/best-", "/top-"];
+  const badTextParts = ["best ", "top ", "inspiration", "examples", "collection", "curated", "article", "blog", "awards"];
+  const goodTextParts = ["studio", "portfolio", "projects", "work", "homepage", "architecture", "interior", "hospitality", "brand"];
+  let score = Number(item.score || 0);
+
+  badUrlParts.forEach((part) => {
+    if (url.includes(part)) score -= 0.35;
+  });
+  badTextParts.forEach((part) => {
+    if (text.includes(part)) score -= 0.18;
+  });
+  goodTextParts.forEach((part) => {
+    if (text.includes(part)) score += 0.08;
+  });
+
+  return score;
+}
+
+function rankReferenceResults(results, count) {
+  return results
+    .map((item) => ({ ...item, referenceScore: scoreReferenceResult(item) }))
+    .sort((a, b) => b.referenceScore - a.referenceScore)
+    .slice(0, count);
+}
+
 async function braveSearch(query, count) {
   if (!braveSearchApiKey) {
     throw new Error("BRAVE_SEARCH_API_KEY не настроен на сервере");
@@ -137,14 +165,13 @@ async function braveSearch(query, count) {
     throw new Error(result?.error?.detail || result?.message || "Поиск не ответил");
   }
 
-  return (result.web?.results || [])
+  return rankReferenceResults((result.web?.results || [])
     .map((item) => ({
       title: stripSearchText(item.title),
       url: item.url,
       description: stripSearchText(item.description),
     }))
-    .filter((item) => item.url)
-    .slice(0, count);
+    .filter((item) => item.url), count);
 }
 
 async function tavilySearch(query, count) {
@@ -174,15 +201,14 @@ async function tavilySearch(query, count) {
     throw new Error(result?.detail?.error || result?.detail || result?.error || result?.message || "Tavily не ответил");
   }
 
-  return (result.results || [])
+  return rankReferenceResults((result.results || [])
     .map((item) => ({
       title: stripSearchText(item.title),
       url: item.url,
       description: stripSearchText(item.content),
       score: item.score,
     }))
-    .filter((item) => item.url)
-    .slice(0, count);
+    .filter((item) => item.url), count);
 }
 
 async function searchProvider(query, count) {

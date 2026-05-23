@@ -622,7 +622,9 @@ function buildSearchQuery() {
     .join(" ");
   const positive = likedTags.length ? likedTags.join(" ") : "premium editorial layout typography";
   const negative = dislikedTags.length ? ` -${dislikedTags.join(" -")}` : "";
-  return `${positive} website design references ${tone}${negative}`.replace(/\s+/g, " ").trim();
+  return `${positive} actual brand website homepage portfolio studio -article -blog -list -awards ${tone}${negative}`
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function renderSearchAgent() {

@@ -444,12 +444,14 @@ function extractTopicTokens(query) {
     "референсы",
     "премиальных",
   ]);
-  return [...new Set(
+  const tokens = [...new Set(
     query
       .replace(/-\S+/g, " ")
       .toLowerCase()
       .match(/[\p{L}\p{N}]{4,}/gu) || [],
-  )].filter((token) => !genericTokens.has(token)).slice(0, 16);
+  )].filter((token) => !genericTokens.has(token));
+  const latinTokens = tokens.filter((token) => /[a-z]/.test(token));
+  return (latinTokens.length >= 3 ? latinTokens : tokens).slice(0, 16);
 }
 
 function scoreTopicRelevance(item, topicTokens = []) {

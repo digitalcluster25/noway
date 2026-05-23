@@ -187,6 +187,9 @@ async function tavilySearch(query, count) {
 
 async function searchProvider(query, count) {
   if (tavilyApiKey) return tavilySearch(query, count);
+  if (!braveSearchApiKey) {
+    throw new Error("TAVILY_API_KEY не настроен на сервере");
+  }
   return braveSearch(query, count);
 }
 

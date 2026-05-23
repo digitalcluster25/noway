@@ -358,6 +358,7 @@ function createDefaultState() {
     languageQueries: structuredClone(languageDimensions),
     conceptStatus: Object.fromEntries(concepts.map((item) => [item.id, "develop"])),
     activeFilter: "all",
+    searchQuery: "",
   };
 }
 
@@ -611,6 +612,27 @@ function renderLanguage() {
     .join("");
 }
 
+function buildSearchQuery() {
+  const signal = getTasteSignal();
+  const likedTags = signal.likedTags.map(([tag]) => tag).slice(0, 4);
+  const dislikedTags = signal.dislikedTags.map(([tag]) => tag).slice(0, 3);
+  const tone = state.selections.tone
+    .slice(0, 3)
+    .map((item) => item.replace(/[^\p{L}\p{N}\s-]/gu, ""))
+    .join(" ");
+  const positive = likedTags.length ? likedTags.join(" ") : "premium editorial layout typography";
+  const negative = dislikedTags.length ? ` -${dislikedTags.join(" -")}` : "";
+  return `${positive} website design references ${tone}${negative}`.replace(/\s+/g, " ").trim();
+}
+
+function renderSearchAgent() {
+  const field = document.querySelector("#search-query");
+  if (!field) return;
+  const generatedQuery = buildSearchQuery();
+  field.placeholder = generatedQuery;
+  field.value = state.searchQuery || generatedQuery;
+}
+
 function getCurrentCandidate() {
   return state.candidates.find((candidate) => !candidate.vote);
 }
@@ -675,6 +697,7 @@ function voteCandidate(vote) {
   renderReferences("discover");
   renderTasteSignal();
   renderLanguage();
+  renderSearchAgent();
   document.querySelectorAll(".filter").forEach((filter) => {
     filter.classList.toggle("is-active", filter.dataset.filter === "discover");
   });
@@ -732,6 +755,42 @@ async function screenshotBatch(urls) {
     throw new Error(result.error || "Не удалось сделать пачку");
   }
   return result.results;
+}
+
+async function searchReferences(query, count = 8) {
+  const response = await fetch("/api/search-references", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query, count }),
+  });
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.error || "Не удалось найти референсы");
+  }
+  return result.results;
+}
+
+function addSearchCandidates(results, query) {
+  const successful = results.filter((item) => item.ok);
+  const offset = state.candidates.length;
+  const newCandidates = successful.map((item, index) => ({
+    id: `search-${Date.now()}-${index}`,
+    title: item.title || `Search reference ${offset + index + 1}`,
+    source: `Search: ${item.source || "web"}`,
+    url: item.url,
+    direction: document.querySelector("#reference-direction").value || "Search Agent",
+    visual: ["visual-editorial", "visual-architecture", "visual-wellness", "visual-material"][index % 4],
+    image: item.preview,
+    tags: [...new Set(["search", ...(item.tags || [])])],
+    note: item.description || `Найдено поисковым агентом по запросу: ${query}`,
+    vote: "",
+    fromSearch: true,
+  }));
+
+  state.candidates.unshift(...newCandidates);
+  renderDiscover();
+  saveState();
+  return successful.length;
 }
 
 function addBatchCandidates(results) {
@@ -1119,6 +1178,7 @@ function bindEvents() {
       renderReferences();
       renderTasteSignal();
       renderLanguage();
+      renderSearchAgent();
       saveState();
     }
 
@@ -1138,6 +1198,7 @@ function bindEvents() {
       renderReferences();
       renderTasteSignal();
       renderLanguage();
+      renderSearchAgent();
       saveState();
     }
 
@@ -1174,6 +1235,35 @@ function bindEvents() {
   document.querySelector("#reject-candidate").addEventListener("click", () => voteCandidate("dislike"));
   document.querySelector("#load-candidates").addEventListener("click", loadMoreCandidates);
   document.querySelector("#refine-candidates").addEventListener("click", refineCandidates);
+  document.querySelector("#search-query").addEventListener("input", (event) => {
+    state.searchQuery = event.target.value.trim();
+    saveState();
+  });
+  document.querySelector("#search-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const status = document.querySelector("#search-status");
+    const submit = document.querySelector("#search-submit");
+    const query = document.querySelector("#search-query").value.trim() || buildSearchQuery();
+
+    status.className = "form-status is-working";
+    status.textContent = "Ищу сайты и делаю screenshots. Это может занять до минуты.";
+    submit.disabled = true;
+    state.searchQuery = query;
+
+    try {
+      const results = await searchReferences(query, 8);
+      const added = addSearchCandidates(results, query);
+      const failed = results.length - added;
+      status.className = failed ? "form-status is-error" : "form-status";
+      status.textContent = `Добавлено в Discover: ${added}. Не удалось обработать: ${failed}.`;
+    } catch (error) {
+      status.className = "form-status is-error";
+      status.textContent = error.message;
+    } finally {
+      submit.disabled = false;
+      saveState();
+    }
+  });
   document.querySelector("#batch-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     const status = document.querySelector("#batch-status");
@@ -1271,6 +1361,7 @@ function bindEvents() {
     renderReferences("manual");
     renderTasteSignal();
     renderLanguage();
+    renderSearchAgent();
     document.querySelectorAll(".filter").forEach((filter) => {
       filter.classList.toggle("is-active", filter.dataset.filter === "manual");
     });
@@ -1338,6 +1429,7 @@ function renderAll() {
   renderReferenceDirectionOptions();
   renderLanguage();
   renderDiscover();
+  renderSearchAgent();
   renderTasteSignal();
   renderReferences();
   renderConcepts();

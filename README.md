@@ -16,6 +16,7 @@
 - Понравившиеся кандидаты автоматически попадают в Moodboard Review.
 - Screenshot-style web previews без копирования чужих сайтов и ассетов.
 - Backend screenshot API: URL в ручном импорте превращается в preview-картинку.
+- Search Agent v1: поиск реальных сайтов через Brave Search API, screenshots найденных URL и добавление в Discover.
 - Batch URL import: список ссылок превращается в очередь Discover-кандидатов со screenshots.
 - Загрузка изображения или скриншота в карточку референса.
 - Финальная visual strategy, которая собирается из выбранных формулировок и оценок.
@@ -49,6 +50,12 @@ docker compose up -d --build
 
 Контейнер использует Node/Express и Playwright: отдает frontend и делает screenshots URL.
 Наружный HTTPS и домен обслуживает Traefik через Docker labels.
+
+Для полноценного Search Agent нужно добавить переменную окружения:
+
+```bash
+BRAVE_SEARCH_API_KEY=...
+```
 
 Обновление после нового push:
 

@@ -10,6 +10,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.join(__dirname, "public");
 const screenshotDir = path.join(publicDir, "generated", "screenshots");
 const port = Number(process.env.PORT || 3000);
+const braveSearchApiKey = process.env.BRAVE_SEARCH_API_KEY || "";
 
 const app = express();
 app.use(express.json({ limit: "1mb" }));
@@ -90,6 +91,61 @@ async function captureReference(rawUrl) {
   }
 }
 
+function stripSearchText(value = "") {
+  return String(value)
+    .replace(/<[^>]*>/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function inferDesignTags(text) {
+  const haystack = text.toLowerCase();
+  const tagRules = [
+    ["typography", ["typography", "type", "serif", "editorial", "magazine"]],
+    ["layout", ["layout", "grid", "composition", "portfolio"]],
+    ["photo", ["photo", "photography", "image", "visual", "gallery"]],
+    ["materials", ["material", "stone", "wood", "texture", "tactile"]],
+    ["proof", ["case study", "process", "service", "studio", "agency"]],
+    ["minimal", ["minimal", "clean", "quiet", "simple"]],
+    ["premium-service", ["premium", "luxury", "high-end", "boutique"]],
+  ];
+  const tags = tagRules.filter(([, words]) => words.some((word) => haystack.includes(word))).map(([tag]) => tag);
+  return [...new Set(tags.length ? tags : ["search", "reference"])];
+}
+
+async function braveSearch(query, count) {
+  if (!braveSearchApiKey) {
+    throw new Error("BRAVE_SEARCH_API_KEY не настроен на сервере");
+  }
+
+  const url = new URL("https://api.search.brave.com/res/v1/web/search");
+  url.searchParams.set("q", query);
+  url.searchParams.set("count", String(Math.min(Math.max(count, 1), 10)));
+  url.searchParams.set("text_decorations", "false");
+  url.searchParams.set("safesearch", "moderate");
+
+  const response = await fetch(url, {
+    headers: {
+      "Accept": "application/json",
+      "X-Subscription-Token": braveSearchApiKey,
+    },
+  });
+  const result = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(result?.error?.detail || result?.message || "Поиск не ответил");
+  }
+
+  return (result.web?.results || [])
+    .map((item) => ({
+      title: stripSearchText(item.title),
+      url: item.url,
+      description: stripSearchText(item.description),
+    }))
+    .filter((item) => item.url)
+    .slice(0, count);
+}
+
 app.post("/api/screenshot-reference", async (req, res) => {
   try {
     res.json(await captureReference(req.body?.url));
@@ -111,6 +167,47 @@ app.post("/api/screenshot-batch", async (req, res) => {
   }
 
   res.json({ results });
+});
+
+app.post("/api/search-references", async (req, res) => {
+  try {
+    const query = stripSearchText(req.body?.query);
+    const count = Number(req.body?.count || 8);
+    if (!query || query.length < 3) {
+      throw new Error("Введите поисковый запрос");
+    }
+
+    const searchResults = await braveSearch(query, count);
+    const results = [];
+
+    for (const result of searchResults) {
+      try {
+        const screenshot = await captureReference(result.url);
+        const textForTags = `${query} ${result.title} ${result.description} ${screenshot.title}`;
+        results.push({
+          ok: true,
+          title: screenshot.title || result.title,
+          url: screenshot.url,
+          source: screenshot.source,
+          preview: screenshot.preview,
+          description: result.description,
+          tags: inferDesignTags(textForTags),
+        });
+      } catch (error) {
+        results.push({
+          ok: false,
+          title: result.title,
+          url: result.url,
+          description: result.description,
+          error: error.message || "Не удалось сделать screenshot",
+        });
+      }
+    }
+
+    res.json({ query, results });
+  } catch (error) {
+    res.status(400).json({ error: error.message || "Не удалось найти референсы" });
+  }
 });
 
 app.get("*", (req, res) => {

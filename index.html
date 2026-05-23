@@ -195,7 +195,12 @@
                 <button class="secondary-action" id="reject-candidate" type="button">Не подходит</button>
                 <button class="primary-action" id="like-candidate" type="button">В moodboard</button>
                 <button class="ghost-action" id="load-candidates" type="button">Подгрузить еще 12</button>
+                <button class="ghost-action" id="refine-candidates" type="button">Уточнить подборку</button>
               </div>
+              <section class="taste-panel">
+                <p class="eyebrow">Taste signal</p>
+                <div id="taste-signal"></div>
+              </section>
               <form class="batch-form is-disabled" id="batch-form" hidden>
                 <label for="batch-urls">Пачка URL</label>
                 <textarea id="batch-urls" rows="7" placeholder="https://site-one.com&#10;https://site-two.com"></textarea>
@@ -224,6 +229,11 @@
             <button class="filter" data-filter="discover">Из Discover</button>
             <button class="filter" data-filter="manual">Добавленные</button>
           </div>
+
+          <article class="panel taste-review">
+            <p class="eyebrow">What user seems to prefer</p>
+            <div id="taste-review"></div>
+          </article>
 
           <article class="panel import-panel">
             <div>

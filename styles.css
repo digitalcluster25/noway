@@ -671,6 +671,42 @@ select {
   gap: 10px;
 }
 
+.taste-panel,
+.taste-review {
+  margin-top: 18px;
+}
+
+.taste-panel {
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.taste-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.taste-chip {
+  padding: 7px 9px;
+  color: var(--ink);
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.taste-chip.negative {
+  color: #7e3f36;
+  background: #f1e4df;
+}
+
+.taste-empty {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
 .batch-form {
   display: grid;
   gap: 10px;

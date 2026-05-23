@@ -361,8 +361,14 @@ function createDefaultState() {
   };
 }
 
-function createCandidates(offset = 0) {
-  return candidateTemplates.map(([title, direction, visual, tags, image], index) => ({
+function createCandidates(offset = 0, preferred = []) {
+  const sortedTemplates = [...candidateTemplates].sort((a, b) => {
+    const scoreA = a[3].filter((tag) => preferred.includes(tag)).length;
+    const scoreB = b[3].filter((tag) => preferred.includes(tag)).length;
+    return scoreB - scoreA;
+  });
+
+  return sortedTemplates.map(([title, direction, visual, tags, image], index) => ({
     id: `candidate-${offset + index + 1}`,
     title: `${title} ${offset ? `#${offset + index + 1}` : ""}`.trim(),
     source: ["Awwwards search", "Behance search", "Dribbble search", "Siteinspire search"][index % 4],
@@ -411,6 +417,48 @@ function imageForVisual(visual) {
 
 function referenceImage(item) {
   return item.image || imageForVisual(item.visual);
+}
+
+function countTags(items) {
+  const counts = new Map();
+  items.forEach((item) => {
+    item.tags.forEach((tag) => counts.set(tag, (counts.get(tag) || 0) + 1));
+  });
+  return [...counts.entries()].sort((a, b) => b[1] - a[1]);
+}
+
+function getTasteSignal() {
+  const likedCandidates = state.candidates.filter((item) => item.vote === "like");
+  const dislikedCandidates = state.candidates.filter((item) => item.vote === "dislike");
+  return {
+    likedTags: countTags(likedCandidates).slice(0, 6),
+    dislikedTags: countTags(dislikedCandidates).slice(0, 6),
+    likedCount: likedCandidates.length,
+    dislikedCount: dislikedCandidates.length,
+  };
+}
+
+function renderTasteSignal() {
+  const signal = getTasteSignal();
+  const renderList = (items, empty, negative = false) =>
+    items.length
+      ? `<div class="taste-list">${items
+          .map(([tag, count]) => `<span class="taste-chip ${negative ? "negative" : ""}">${tag} ×${count}</span>`)
+          .join("")}</div>`
+      : `<p class="taste-empty">${empty}</p>`;
+
+  const html = `
+    <p class="taste-empty">Лайков: ${signal.likedCount}. Дизлайков: ${signal.dislikedCount}.</p>
+    <p class="eyebrow">Усилить</p>
+    ${renderList(signal.likedTags, "Пока нет лайков.")}
+    <p class="eyebrow">Ослабить</p>
+    ${renderList(signal.dislikedTags, "Пока нет дизлайков.", true)}
+  `;
+
+  const discoverMount = document.querySelector("#taste-signal");
+  const reviewMount = document.querySelector("#taste-review");
+  if (discoverMount) discoverMount.innerHTML = html;
+  if (reviewMount) reviewMount.innerHTML = html;
 }
 
 function webPreview(item, size = "reference") {
@@ -511,19 +559,29 @@ function renderReferenceDirectionOptions() {
 }
 
 function renderLanguage() {
+  const signal = getTasteSignal();
+  const likedTags = signal.likedTags.map(([tag]) => tag);
+  const refinedQueries = likedTags.length
+    ? [
+        `${likedTags.slice(0, 2).join(" ")} premium website`,
+        `${likedTags[0]} landing page design`,
+        `${likedTags.slice(0, 3).join(" ")} web design reference`,
+      ]
+    : [];
   document.querySelector("#language-grid").innerHTML = state.languageQueries
-    .map(
-      (item) => `
+    .map((item, index) => {
+      const queries = index === 0 && refinedQueries.length ? refinedQueries : item.queries;
+      return `
         <article class="language-item">
           <p class="eyebrow">${item.title}</p>
           <h3>${item.title}</h3>
           <p>${item.copy}</p>
           <div class="query-list">
-            ${item.queries.map((query) => `<span class="query-pill">${query}</span>`).join("")}
+            ${queries.map((query) => `<span class="query-pill">${query}</span>`).join("")}
           </div>
         </article>
-      `,
-    )
+      `;
+    })
     .join("");
 }
 
@@ -589,6 +647,8 @@ function voteCandidate(vote) {
 
   renderDiscover();
   renderReferences("discover");
+  renderTasteSignal();
+  renderLanguage();
   document.querySelectorAll(".filter").forEach((filter) => {
     filter.classList.toggle("is-active", filter.dataset.filter === "discover");
   });
@@ -597,8 +657,41 @@ function voteCandidate(vote) {
 
 function loadMoreCandidates() {
   const offset = state.candidates.length;
-  state.candidates.push(...createCandidates(offset));
+  const preferred = getTasteSignal().likedTags.map(([tag]) => tag);
+  state.candidates.push(...createCandidates(offset, preferred));
   renderDiscover();
+  saveState();
+}
+
+function refineCandidates() {
+  const signal = getTasteSignal();
+  const likedTags = signal.likedTags.map(([tag]) => tag);
+  const dislikedTags = signal.dislikedTags.map(([tag]) => tag);
+  const offset = state.candidates.length;
+  const refined = candidateTemplates
+    .filter((template) => {
+      const tags = template[3];
+      if (!likedTags.length) return true;
+      return tags.some((tag) => likedTags.includes(tag)) && !tags.some((tag) => dislikedTags.includes(tag));
+    })
+    .slice(0, 12)
+    .map(([title, direction, visual, tags, image], index) => ({
+      id: `refined-${Date.now()}-${index}`,
+      title: `${title} refined`,
+      source: "Taste refinement",
+      url: "",
+      direction,
+      visual,
+      image,
+      tags,
+      note: "Кандидат сгенерирован после голосования по taste signal.",
+      vote: "",
+      refined: true,
+    }));
+
+  state.candidates.unshift(...(refined.length ? refined : createCandidates(offset)));
+  renderDiscover();
+  renderLanguage();
   saveState();
 }
 
@@ -1050,6 +1143,7 @@ function bindEvents() {
   document.querySelector("#like-candidate").addEventListener("click", () => voteCandidate("like"));
   document.querySelector("#reject-candidate").addEventListener("click", () => voteCandidate("dislike"));
   document.querySelector("#load-candidates").addEventListener("click", loadMoreCandidates);
+  document.querySelector("#refine-candidates").addEventListener("click", refineCandidates);
   document.querySelector("#batch-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     const status = document.querySelector("#batch-status");
@@ -1212,6 +1306,7 @@ function renderAll() {
   renderReferenceDirectionOptions();
   renderLanguage();
   renderDiscover();
+  renderTasteSignal();
   renderReferences();
   renderConcepts();
   renderStrategy();

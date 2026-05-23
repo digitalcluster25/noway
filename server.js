@@ -220,7 +220,8 @@ async function braveSearch(query, count) {
 
   const url = new URL("https://api.search.brave.com/res/v1/web/search");
   url.searchParams.set("q", query);
-  url.searchParams.set("count", String(Math.min(Math.max(count, 1), 10)));
+  const requestedCount = Math.min(Math.max(count * 3, 10), 20);
+  url.searchParams.set("count", String(requestedCount));
   url.searchParams.set("text_decorations", "false");
   url.searchParams.set("safesearch", "moderate");
 
@@ -260,7 +261,7 @@ async function tavilySearch(query, count) {
       query,
       search_depth: "basic",
       topic: "general",
-      max_results: Math.min(Math.max(count, 1), 10),
+      max_results: Math.min(Math.max(count * 3, 10), 20),
       include_answer: false,
       include_raw_content: false,
       include_images: false,

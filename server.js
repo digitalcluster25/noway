@@ -180,8 +180,33 @@ function scoreReferenceResult(item) {
   return score;
 }
 
+function isLowQualityReference(item) {
+  const url = item.url.toLowerCase();
+  const hostname = new URL(item.url).hostname.replace(/^www\./, "");
+  const text = `${item.title} ${item.description}`.toLowerCase();
+  const blockedDomains = [
+    "instagram.com",
+    "facebook.com",
+    "pinterest.com",
+    "youtube.com",
+    "x.com",
+    "twitter.com",
+    "themeforest.net",
+    "templatemag.com",
+  ];
+  const blockedUrlParts = ["/template", "/templates", "/theme", "/themes", "/download"];
+  const blockedTextParts = ["website builder", "portfolio template", "wordpress theme", "premium template", "free template"];
+
+  return (
+    blockedDomains.some((domain) => hostname === domain || hostname.endsWith(`.${domain}`)) ||
+    blockedUrlParts.some((part) => url.includes(part)) ||
+    blockedTextParts.some((part) => text.includes(part))
+  );
+}
+
 function rankReferenceResults(results, count) {
   return results
+    .filter((item) => !isLowQualityReference(item))
     .map((item) => ({ ...item, referenceScore: scoreReferenceResult(item) }))
     .sort((a, b) => b.referenceScore - a.referenceScore)
     .filter((item) => item.referenceScore > -0.75)

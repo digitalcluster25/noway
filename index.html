@@ -194,14 +194,18 @@
               <form class="search-agent" id="search-form">
                 <label for="search-query">Search Agent</label>
                 <textarea id="search-query" rows="3" placeholder="premium editorial website design references"></textarea>
+                <div class="source-list" aria-label="Источники поиска">
+                  <label><input type="checkbox" name="search-source" value="behance" checked> Behance</label>
+                  <label><input type="checkbox" name="search-source" value="dribbble" checked> Dribbble</label>
+                  <label><input type="checkbox" name="search-source" value="pinterest" checked> Pinterest</label>
+                  <label><input type="checkbox" name="search-source" value="awwwards" checked> Awwwards</label>
+                </div>
                 <button class="primary-action" id="search-submit" type="submit">Найти реальные референсы</button>
                 <p class="form-status" id="search-status" role="status" aria-live="polite"></p>
               </form>
               <div class="discover-actions">
                 <button class="secondary-action" id="reject-candidate" type="button">Не подходит</button>
                 <button class="primary-action" id="like-candidate" type="button">В moodboard</button>
-                <button class="ghost-action" id="load-candidates" type="button">Подгрузить еще 12</button>
-                <button class="ghost-action" id="refine-candidates" type="button">Уточнить подборку</button>
               </div>
               <section class="taste-panel">
                 <p class="eyebrow">Taste signal</p>

@@ -13,6 +13,13 @@ const port = Number(process.env.PORT || 3000);
 const braveSearchApiKey = process.env.BRAVE_SEARCH_API_KEY || "";
 const tavilyApiKey = process.env.TAVILY_API_KEY || "";
 
+const searchSources = {
+  behance: { label: "Behance", domains: ["behance.net"] },
+  dribbble: { label: "Dribbble", domains: ["dribbble.com"] },
+  pinterest: { label: "Pinterest", domains: ["pinterest.com"] },
+  awwwards: { label: "Awwwards", domains: ["awwwards.com"] },
+};
+
 const app = express();
 app.use(express.json({ limit: "1mb" }));
 app.use(express.static(publicDir));
@@ -121,7 +128,6 @@ function scoreReferenceResult(item) {
   const badDomains = [
     "instagram.com",
     "facebook.com",
-    "pinterest.com",
     "youtube.com",
     "tiktok.com",
     "reddit.com",
@@ -191,6 +197,8 @@ function isLowQualityReference(item) {
     "facebook.com",
     "pinterest.com",
     "youtube.com",
+    "tiktok.com",
+    "reddit.com",
     "x.com",
     "twitter.com",
     "themeforest.net",
@@ -259,7 +267,7 @@ async function braveSearch(query, count) {
     .filter((item) => item.url), count);
 }
 
-async function tavilySearch(query, count) {
+async function tavilySearch(query, count, domains = []) {
   if (!tavilyApiKey) {
     throw new Error("TAVILY_API_KEY не настроен на сервере");
   }
@@ -278,6 +286,7 @@ async function tavilySearch(query, count) {
       include_answer: false,
       include_raw_content: false,
       include_images: false,
+      include_domains: domains,
     }),
   });
   const result = await response.json().catch(() => ({}));
@@ -296,8 +305,8 @@ async function tavilySearch(query, count) {
     .filter((item) => item.url), count);
 }
 
-async function searchProvider(query, count) {
-  if (tavilyApiKey) return tavilySearch(query, count);
+async function searchProvider(query, count, domains = []) {
+  if (tavilyApiKey) return tavilySearch(query, count, domains);
   if (!braveSearchApiKey) {
     throw new Error("TAVILY_API_KEY не настроен на сервере");
   }
@@ -331,14 +340,26 @@ app.post("/api/search-references", async (req, res) => {
   try {
     const query = stripSearchText(req.body?.query);
     const count = Number(req.body?.count || 8);
+    const selectedSources = Array.isArray(req.body?.sources)
+      ? req.body.sources.filter((source) => searchSources[source])
+      : Object.keys(searchSources);
     if (!query || query.length < 3) {
       throw new Error("Введите поисковый запрос");
     }
+    if (!selectedSources.length) {
+      throw new Error("Выберите хотя бы один источник поиска");
+    }
 
-    const searchResults = await searchProvider(query, count);
+    const perSourceCount = Math.max(2, Math.ceil(count / selectedSources.length));
+    const searchResults = [];
+    for (const source of selectedSources) {
+      const sourceConfig = searchSources[source];
+      const results = await searchProvider(query, perSourceCount, sourceConfig.domains);
+      searchResults.push(...results.map((item) => ({ ...item, sourceRoute: sourceConfig.label, sourceId: source })));
+    }
     const results = [];
 
-    for (const result of searchResults) {
+    for (const result of searchResults.slice(0, count)) {
       try {
         const screenshot = await captureReference(result.url);
         const textForTags = `${query} ${result.title} ${result.description} ${screenshot.title}`;
@@ -347,9 +368,11 @@ app.post("/api/search-references", async (req, res) => {
           title: screenshot.title || result.title,
           url: screenshot.url,
           source: screenshot.source,
+          sourceRoute: result.sourceRoute,
+          sourceId: result.sourceId,
           preview: screenshot.preview,
           description: result.description,
-          tags: inferDesignTags(textForTags),
+          tags: [...new Set([result.sourceId, ...inferDesignTags(textForTags)])],
         });
       } catch (error) {
         results.push({

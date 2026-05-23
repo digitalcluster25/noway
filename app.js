@@ -353,12 +353,13 @@ function createDefaultState() {
     },
     selections: structuredClone(defaultSelections),
     directionStatus: Object.fromEntries(directions.map((item) => [item.title, "keep"])),
-    references: structuredClone(seedReferences),
-    candidates: createCandidates(0),
+    references: [],
+    candidates: [],
     languageQueries: structuredClone(languageDimensions),
     conceptStatus: Object.fromEntries(concepts.map((item) => [item.id, "develop"])),
     activeFilter: "all",
     searchQuery: "",
+    searchSources: ["behance", "dribbble", "pinterest", "awwwards"],
   };
 }
 
@@ -385,13 +386,22 @@ function createCandidates(offset = 0, preferred = []) {
 
 function loadState() {
   const saved = localStorage.getItem(storageKey);
-  if (!saved) return createDefaultState();
+  if (!saved) return normalizeState(createDefaultState());
 
   try {
-    return { ...createDefaultState(), ...JSON.parse(saved) };
+    return normalizeState({ ...createDefaultState(), ...JSON.parse(saved) });
   } catch {
-    return createDefaultState();
+    return normalizeState(createDefaultState());
   }
+}
+
+function normalizeState(nextState) {
+  nextState.references = (nextState.references || []).filter((item) => item.image || item.url || item.manual || item.fromDiscover);
+  nextState.candidates = (nextState.candidates || []).filter((item) => item.image || item.url || item.fromSearch || item.fromBatch);
+  nextState.searchSources = nextState.searchSources?.length
+    ? nextState.searchSources
+    : ["behance", "dribbble", "pinterest", "awwwards"];
+  return nextState;
 }
 
 function saveState() {
@@ -514,7 +524,7 @@ function visualMarkup(item, className) {
   if (image) {
     return `<div class="${className}" style="background-image:url('${image}')"></div>`;
   }
-  return `<div class="${className}">${webPreview(item, className.includes("discover") ? "large" : "reference")}</div>`;
+  return `<div class="${className} is-empty"></div>`;
 }
 
 function renderProjectFields() {
@@ -633,6 +643,9 @@ function renderSearchAgent() {
   const generatedQuery = buildSearchQuery();
   field.placeholder = generatedQuery;
   field.value = state.searchQuery || generatedQuery;
+  document.querySelectorAll('[name="search-source"]').forEach((input) => {
+    input.checked = state.searchSources.includes(input.value);
+  });
 }
 
 function getCurrentCandidate() {
@@ -648,11 +661,10 @@ function renderDiscover() {
 
   if (!candidate) {
     document.querySelector("#discover-card").innerHTML = `
-      <div class="discover-visual visual-editorial"></div>
+      <div class="discover-visual is-empty"></div>
       <div class="discover-body">
-        <p class="eyebrow">Пачка закончилась</p>
-        <h3>Нужно больше вариантов</h3>
-        <p>Подгрузите еще 12 кандидатов или переходите в Moodboard Review, если уже достаточно понравившихся референсов.</p>
+        <p class="eyebrow">Нет реальных референсов</p>
+        <h3>Запустите поиск по источникам</h3>
       </div>
     `;
     return;
@@ -660,15 +672,6 @@ function renderDiscover() {
 
   document.querySelector("#discover-card").innerHTML = `
     ${visualMarkup(candidate, "discover-visual")}
-    <div class="discover-body">
-      <div class="meta">
-        <span class="tag">${candidate.source}</span>
-        <span class="tag">${candidate.direction}</span>
-        ${candidate.tags.map((tag) => `<span class="tag">${tag}</span>`).join("")}
-      </div>
-      <h3>${escapeHtml(candidate.title)}</h3>
-      <p>${escapeHtml(candidate.note)}</p>
-    </div>
   `;
 }
 
@@ -759,11 +762,11 @@ async function screenshotBatch(urls) {
   return result.results;
 }
 
-async function searchReferences(query, count = 8) {
+async function searchReferences(query, count = 8, sources = state.searchSources) {
   const response = await fetch("/api/search-references", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, count }),
+    body: JSON.stringify({ query, count, sources }),
   });
   const result = await response.json();
   if (!response.ok) {
@@ -778,7 +781,7 @@ function addSearchCandidates(results, query) {
   const newCandidates = successful.map((item, index) => ({
     id: `search-${Date.now()}-${index}`,
     title: item.title || `Search reference ${offset + index + 1}`,
-    source: `Search: ${item.source || "web"}`,
+    source: `${item.sourceRoute || "Search"}: ${item.source || "web"}`,
     url: item.url,
     direction: document.querySelector("#reference-direction").value || "Search Agent",
     visual: ["visual-editorial", "visual-architecture", "visual-wellness", "visual-material"][index % 4],
@@ -1235,8 +1238,12 @@ function bindEvents() {
 
   document.querySelector("#like-candidate").addEventListener("click", () => voteCandidate("like"));
   document.querySelector("#reject-candidate").addEventListener("click", () => voteCandidate("dislike"));
-  document.querySelector("#load-candidates").addEventListener("click", loadMoreCandidates);
-  document.querySelector("#refine-candidates").addEventListener("click", refineCandidates);
+  document.querySelectorAll('[name="search-source"]').forEach((input) => {
+    input.addEventListener("change", () => {
+      state.searchSources = [...document.querySelectorAll('[name="search-source"]:checked')].map((item) => item.value);
+      saveState();
+    });
+  });
   document.querySelector("#search-query").addEventListener("input", (event) => {
     state.searchQuery = event.target.value.trim();
     saveState();
@@ -1246,14 +1253,22 @@ function bindEvents() {
     const status = document.querySelector("#search-status");
     const submit = document.querySelector("#search-submit");
     const query = document.querySelector("#search-query").value.trim() || buildSearchQuery();
+    const sources = [...document.querySelectorAll('[name="search-source"]:checked')].map((item) => item.value);
+
+    if (!sources.length) {
+      status.className = "form-status is-error";
+      status.textContent = "Выберите хотя бы один источник.";
+      return;
+    }
 
     status.className = "form-status is-working";
     status.textContent = "Ищу сайты и делаю screenshots. Это может занять до минуты.";
     submit.disabled = true;
     state.searchQuery = query;
+    state.searchSources = sources;
 
     try {
-      const results = await searchReferences(query, 8);
+      const results = await searchReferences(query, 8, sources);
       const added = addSearchCandidates(results, query);
       const failed = results.length - added;
       status.className = failed ? "form-status is-error" : "form-status";

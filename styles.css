@@ -617,6 +617,17 @@ select {
   background-size: cover;
 }
 
+.discover-card > .discover-visual:only-child {
+  min-height: 620px;
+}
+
+.discover-visual.is-empty,
+.reference-visual.is-empty {
+  background:
+    linear-gradient(135deg, rgba(244, 240, 232, 0.78), rgba(255, 255, 255, 0.92)),
+    repeating-linear-gradient(90deg, rgba(48, 48, 45, 0.05) 0 1px, transparent 1px 72px);
+}
+
 .discover-body {
   padding: 24px;
 }
@@ -687,6 +698,30 @@ select {
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+.source-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.source-list label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--soft);
+  font-size: 13px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.source-list input {
+  accent-color: var(--charcoal);
 }
 
 .taste-panel,

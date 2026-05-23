@@ -150,7 +150,7 @@ function compactSearchQuery(query, maxLength = 390) {
   return output.join(" ");
 }
 
-function buildBehanceSearchPhrase(query) {
+function buildBehanceSearchPhrases(query) {
   const genericTokens = new Set([
     "reference",
     "references",
@@ -175,13 +175,38 @@ function buildBehanceSearchPhrase(query) {
     "референс",
     "референсы",
   ]);
+  const translationHints = [
+    [/модул|modular/, "modular homes"],
+    [/архитект|architect/, "architecture"],
+    [/инвест|investor/, "real estate investors"],
+    [/девелоп|developer/, "real estate development"],
+    [/строител|construction/, "construction"],
+    [/дом|house|home/, "homes"],
+    [/спа|spa/, "spa wellness"],
+    [/wellness|hospitality/, "hospitality"],
+    [/инженер|engineering/, "engineering"],
+    [/преми|premium|luxury/, "premium"],
+    [/магазин|store|shop/, "store"],
+    [/портфолио|portfolio/, "portfolio"],
+  ];
+  const sourceText = stripSearchText(query).toLowerCase();
   const tokens = stripSearchText(query)
     .replace(/-\S+/g, " ")
     .toLowerCase()
     .match(/[\p{L}\p{N}]{4,}/gu) || [];
-  const meaningful = [...new Set(tokens)].filter((token) => !genericTokens.has(token)).slice(0, 6);
-  const phrase = meaningful.length ? meaningful.join(" ") : "website landing page";
-  return `${phrase} website`;
+  const meaningful = [...new Set(tokens)].filter((token) => !genericTokens.has(token));
+  const latinMeaningful = meaningful.filter((token) => /[a-z]/.test(token)).slice(0, 6);
+  const translated = translationHints
+    .filter(([pattern]) => pattern.test(sourceText))
+    .map(([, value]) => value);
+  const phrases = [
+    translated.length ? `${[...new Set(translated)].slice(0, 5).join(" ")} website design` : "",
+    latinMeaningful.length ? `${latinMeaningful.join(" ")} website design` : "",
+    "architecture website design",
+    "premium landing page design",
+    "website landing page design",
+  ].filter(Boolean);
+  return [...new Set(phrases)];
 }
 
 const briefOptions = {
@@ -711,8 +736,7 @@ async function tavilySearch(query, count, domains = [], sourceId, relevanceQuery
 
 async function behanceDirectSearch(query, count, relevanceQuery = query) {
   let browser;
-  const phrase = buildBehanceSearchPhrase(relevanceQuery || query);
-  const searchUrl = `https://www.behance.net/search/projects?search=${encodeURIComponent(phrase)}`;
+  const phrases = buildBehanceSearchPhrases(relevanceQuery || query);
 
   browser = await chromium.launch({
     headless: true,
@@ -724,26 +748,34 @@ async function behanceDirectSearch(query, count, relevanceQuery = query) {
       viewport: { width: 1440, height: 1100 },
       deviceScaleFactor: 1,
     });
-    await page.goto(searchUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
-    await page.waitForLoadState("networkidle", { timeout: 8000 }).catch(() => {});
-    await page.waitForTimeout(1200);
+    const collected = [];
 
-    const results = await page.evaluate(() => {
-      const anchors = [...document.querySelectorAll('a[href*="/gallery/"]')];
-      return anchors.map((anchor) => {
-        const url = new URL(anchor.getAttribute("href"), window.location.origin).toString();
-        const card = anchor.closest("li, article, div") || anchor;
-        const title = (anchor.getAttribute("title") || anchor.textContent || card.textContent || "").trim();
-        return {
-          title,
-          url,
-          description: card.textContent || title,
-          score: 0.5,
-        };
-      });
-    });
+    for (const phrase of phrases) {
+      const searchUrl = `https://www.behance.net/search/projects?search=${encodeURIComponent(phrase)}`;
+      await page.goto(searchUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
+      await page.waitForLoadState("networkidle", { timeout: 8000 }).catch(() => {});
+      await page.waitForTimeout(1200);
 
-    return rankReferenceResults(results, count, "behance", relevanceQuery);
+      const results = await page.evaluate((activePhrase) => {
+        const anchors = [...document.querySelectorAll('a[href*="/gallery/"]')];
+        return anchors.map((anchor) => {
+          const url = new URL(anchor.getAttribute("href"), window.location.origin).toString();
+          const card = anchor.closest("li, article, div") || anchor;
+          const title = (anchor.getAttribute("title") || anchor.textContent || card.textContent || "").trim();
+          return {
+            title,
+            url,
+            description: card.textContent || title || `Behance result for ${activePhrase}`,
+            score: 0.5,
+          };
+        });
+      }, phrase);
+
+      collected.push(...results);
+      if (rankReferenceResults(collected, count, "behance", relevanceQuery).length >= count) break;
+    }
+
+    return rankReferenceResults(collected, count, "behance", relevanceQuery);
   } finally {
     if (browser) await browser.close();
   }

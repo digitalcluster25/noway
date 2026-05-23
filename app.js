@@ -363,7 +363,7 @@ function createDefaultState() {
     conceptStatus: Object.fromEntries(concepts.map((item) => [item.id, "develop"])),
     activeFilter: "all",
     searchQuery: "",
-    searchSources: ["behance", "dribbble", "pinterest", "awwwards"],
+    searchSources: ["behance"],
     discoverAutoQuery: "",
   };
 }
@@ -404,9 +404,7 @@ function normalizeState(nextState) {
   nextState.customOptions = { ...structuredClone(defaultCustomOptions), ...(nextState.customOptions || {}) };
   nextState.references = (nextState.references || []).filter((item) => item.image || item.url || item.manual || item.fromDiscover);
   nextState.candidates = (nextState.candidates || []).filter((item) => item.image || item.url || item.fromSearch || item.fromBatch);
-  nextState.searchSources = nextState.searchSources?.length
-    ? nextState.searchSources
-    : ["behance", "dribbble", "pinterest", "awwwards"];
+  nextState.searchSources = nextState.searchSources?.includes("behance") ? ["behance"] : ["behance"];
   return nextState;
 }
 
@@ -964,7 +962,7 @@ async function runReferenceSearch({ automatic = false } = {}) {
   if (!status || !submit || submit.disabled) return;
 
   const query = buildSearchQuery();
-  const sources = state.searchSources?.length ? state.searchSources : ["behance", "dribbble", "pinterest", "awwwards"];
+  const sources = ["behance"];
 
   if (automatic && state.discoverAutoQuery === query && state.candidates.some((item) => item.fromSearch)) return;
 

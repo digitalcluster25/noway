@@ -20,7 +20,7 @@ const searchSources = {
   behance: {
     label: "Behance",
     domains: ["behance.net"],
-    queryHint: "site:behance.net/gallery website design ui ux case study",
+    queryHint: "site:behance.net/gallery website design landing page homepage",
     acceptPath: (pathname) => pathname.startsWith("/gallery/"),
   },
   dribbble: {
@@ -567,6 +567,8 @@ function isLowQualityReference(item, sourceId) {
     "portfolio hosting",
     "sharing your portfolio",
     "where do you think",
+  ];
+  const blockedNonBehanceTextParts = [
     "information architecture",
     "user persona",
     "user journey",
@@ -577,13 +579,14 @@ function isLowQualityReference(item, sourceId) {
   return (
     (sourceId !== "pinterest" && blockedDomains.some((domain) => hostname === domain || hostname.endsWith(`.${domain}`))) ||
     blockedUrlParts.some((part) => url.includes(part)) ||
-    blockedTextParts.some((part) => text.includes(part))
+    blockedTextParts.some((part) => text.includes(part)) ||
+    (sourceId !== "behance" && blockedNonBehanceTextParts.some((part) => text.includes(part)))
   );
 }
 
 function rankReferenceResults(results, count, sourceId, relevanceQuery = "") {
   const topicTokens = extractTopicTokens(relevanceQuery);
-  return dedupeReferenceResults(results)
+  const ranked = dedupeReferenceResults(results)
     .filter((item) => isAcceptedSourceReference(item, sourceId) && !isLowQualityReference(item, sourceId))
     .map((item) => {
       const topicRelevance = scoreTopicRelevance(item, topicTokens);
@@ -596,9 +599,9 @@ function rankReferenceResults(results, count, sourceId, relevanceQuery = "") {
       };
     })
     .sort((a, b) => b.referenceScore - a.referenceScore)
-    .filter((item) => !topicTokens.length || topicTokens.length < 3 || item.topicHits >= item.minimumTopicHits)
-    .filter((item) => item.referenceScore > -0.75)
-    .slice(0, count);
+    .filter((item) => item.referenceScore > -0.75);
+  const topicMatched = ranked.filter((item) => !topicTokens.length || topicTokens.length < 3 || item.topicHits >= item.minimumTopicHits);
+  return (topicMatched.length ? topicMatched : ranked).slice(0, count);
 }
 
 async function braveSearch(query, count, sourceId, relevanceQuery = query) {
@@ -720,8 +723,8 @@ app.post("/api/search-references", async (req, res) => {
     const query = stripSearchText(req.body?.query);
     const count = Number(req.body?.count || 8);
     const selectedSources = Array.isArray(req.body?.sources)
-      ? req.body.sources.filter((source) => searchSources[source])
-      : Object.keys(searchSources);
+      ? req.body.sources.filter((source) => source === "behance")
+      : ["behance"];
     if (!query || query.length < 3) {
       throw new Error("Введите поисковый запрос");
     }

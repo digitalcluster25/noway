@@ -442,6 +442,11 @@ async function applyWishBrief() {
   status.className = "form-status is-working";
   status.textContent = "Собираю бриф...";
   submit.disabled = true;
+  const stopLoader = startDelayedLoader({
+    title: "Собираю бриф",
+    detail: "Агент читает запрос, заполняет основу проекта и готовит адаптированные варианты выбора.",
+    estimate: "обычно 15-30 сек",
+  });
 
   try {
     const brief = await createBriefFromWish(wish);
@@ -471,6 +476,7 @@ async function applyWishBrief() {
     status.className = "form-status is-error";
     status.textContent = error.message;
   } finally {
+    stopLoader();
     submit.disabled = false;
   }
 }
@@ -481,6 +487,47 @@ function escapeHtml(value) {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
+}
+
+function formatElapsed(ms) {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  if (!minutes) return `${seconds} сек`;
+  return `${minutes} мин ${seconds.toString().padStart(2, "0")} сек`;
+}
+
+function startDelayedLoader({ title, detail, estimate, delay = 2000 }) {
+  const loader = document.querySelector("#process-loader");
+  if (!loader) return () => {};
+
+  const titleElement = document.querySelector("#loader-title");
+  const detailElement = document.querySelector("#loader-detail");
+  const elapsedElement = document.querySelector("#loader-elapsed");
+  const estimateElement = document.querySelector("#loader-estimate");
+  const startedAt = Date.now();
+  let intervalId = 0;
+  let isVisible = false;
+
+  const updateElapsed = () => {
+    elapsedElement.textContent = formatElapsed(Date.now() - startedAt);
+  };
+
+  const showTimer = window.setTimeout(() => {
+    titleElement.textContent = title;
+    detailElement.textContent = detail;
+    estimateElement.textContent = estimate;
+    updateElapsed();
+    loader.hidden = false;
+    isVisible = true;
+    intervalId = window.setInterval(updateElapsed, 1000);
+  }, delay);
+
+  return () => {
+    window.clearTimeout(showTimer);
+    if (intervalId) window.clearInterval(intervalId);
+    if (isVisible) loader.hidden = true;
+  };
 }
 
 function listOrFallback(items, fallback) {
@@ -935,6 +982,11 @@ async function runReferenceSearch({ automatic = false } = {}) {
   state.searchQuery = query;
   state.searchSources = sources;
   if (automatic) state.discoverAutoQuery = query;
+  const stopLoader = startDelayedLoader({
+    title: automatic ? "Ищу первые референсы" : "Ищу еще референсы",
+    detail: "Поиск идет по выбранным источникам, затем сервер открывает страницы и делает screenshots.",
+    estimate: "обычно 40-90 сек",
+  });
 
   try {
     const results = await searchReferences(query, 8, sources);
@@ -947,6 +999,7 @@ async function runReferenceSearch({ automatic = false } = {}) {
     status.className = "form-status is-error";
     status.textContent = error.message;
   } finally {
+    stopLoader();
     submit.disabled = false;
     saveState();
   }
@@ -1427,6 +1480,11 @@ function bindEvents() {
     status.className = "form-status is-working";
     status.textContent = `Делаю screenshots: 0/${urls.length}`;
     submit.disabled = true;
+    const stopLoader = startDelayedLoader({
+      title: "Делаю пачку screenshots",
+      detail: `Сервер открывает ${urls.length} URL и собирает превью для Reference Tinder.`,
+      estimate: `примерно ${Math.max(15, urls.length * 8)}-${Math.max(30, urls.length * 14)} сек`,
+    });
 
     try {
       const results = await screenshotBatch(urls);
@@ -1439,6 +1497,7 @@ function bindEvents() {
       status.className = "form-status is-error";
       status.textContent = error.message;
     } finally {
+      stopLoader();
       submit.disabled = false;
     }
   });
@@ -1464,6 +1523,11 @@ function bindEvents() {
     if (url && !image) {
       status.textContent = "Делаю screenshot URL...";
       status.classList.add("is-working");
+      const stopLoader = startDelayedLoader({
+        title: "Делаю screenshot",
+        detail: "Сервер открывает страницу и сохраняет превью для moodboard.",
+        estimate: "обычно 8-25 сек",
+      });
       try {
         screenshot = await screenshotReference(url);
         image = screenshot.preview;
@@ -1473,6 +1537,8 @@ function bindEvents() {
         status.classList.remove("is-working");
         status.classList.add("is-error");
         status.textContent = `${error.message}. Карточка добавлена без screenshot.`;
+      } finally {
+        stopLoader();
       }
     }
 

@@ -365,6 +365,26 @@
     </div>
 
     <div class="toast" id="toast" role="status" aria-live="polite">Brief скопирован</div>
+    <div class="process-loader" id="process-loader" hidden>
+      <div class="process-loader-card" role="status" aria-live="polite">
+        <div class="loader-ring" aria-hidden="true"></div>
+        <div>
+          <p class="eyebrow">Process</p>
+          <h3 id="loader-title">Идет операция</h3>
+          <p id="loader-detail">Это может занять немного времени.</p>
+          <dl class="loader-metrics">
+            <div>
+              <dt>Прошло</dt>
+              <dd id="loader-elapsed">0 сек</dd>
+            </div>
+            <div>
+              <dt>Обычно занимает</dt>
+              <dd id="loader-estimate">до минуты</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+    </div>
     <script src="./app.js"></script>
   </body>
 </html>

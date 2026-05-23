@@ -351,15 +351,22 @@ app.post("/api/search-references", async (req, res) => {
     }
 
     const perSourceCount = Math.max(2, Math.ceil(count / selectedSources.length));
-    const searchResults = [];
+    const groupedResults = [];
     for (const source of selectedSources) {
       const sourceConfig = searchSources[source];
       const results = await searchProvider(query, perSourceCount, sourceConfig.domains);
-      searchResults.push(...results.map((item) => ({ ...item, sourceRoute: sourceConfig.label, sourceId: source })));
+      groupedResults.push(results.map((item) => ({ ...item, sourceRoute: sourceConfig.label, sourceId: source })));
+    }
+
+    const searchResults = [];
+    for (let index = 0; searchResults.length < count && index < perSourceCount; index += 1) {
+      groupedResults.forEach((group) => {
+        if (group[index] && searchResults.length < count) searchResults.push(group[index]);
+      });
     }
     const results = [];
 
-    for (const result of searchResults.slice(0, count)) {
+    for (const result of searchResults) {
       try {
         const screenshot = await captureReference(result.url);
         const textForTags = `${query} ${result.title} ${result.description} ${screenshot.title}`;

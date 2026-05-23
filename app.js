@@ -1127,8 +1127,12 @@ function setStep(stepId) {
     step.classList.toggle("is-active", step.dataset.step === stepId);
   });
 
-  document.querySelector("#agent-title").textContent = agentCopy[stepId].title;
-  document.querySelector("#agent-copy").textContent = agentCopy[stepId].copy;
+  const agentTitle = document.querySelector("#agent-title");
+  const agentCopyElement = document.querySelector("#agent-copy");
+  if (agentTitle && agentCopyElement) {
+    agentTitle.textContent = agentCopy[stepId].title;
+    agentCopyElement.textContent = agentCopy[stepId].copy;
+  }
   renderStrategy();
 }
 

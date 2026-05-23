@@ -11,6 +11,7 @@ const publicDir = path.join(__dirname, "public");
 const screenshotDir = path.join(publicDir, "generated", "screenshots");
 const port = Number(process.env.PORT || 3000);
 const braveSearchApiKey = process.env.BRAVE_SEARCH_API_KEY || "";
+const tavilyApiKey = process.env.TAVILY_API_KEY || "";
 
 const app = express();
 app.use(express.json({ limit: "1mb" }));
@@ -146,6 +147,49 @@ async function braveSearch(query, count) {
     .slice(0, count);
 }
 
+async function tavilySearch(query, count) {
+  if (!tavilyApiKey) {
+    throw new Error("TAVILY_API_KEY не настроен на сервере");
+  }
+
+  const response = await fetch("https://api.tavily.com/search", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${tavilyApiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      query,
+      search_depth: "basic",
+      topic: "general",
+      max_results: Math.min(Math.max(count, 1), 10),
+      include_answer: false,
+      include_raw_content: false,
+      include_images: false,
+    }),
+  });
+  const result = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(result?.detail?.error || result?.detail || result?.error || result?.message || "Tavily не ответил");
+  }
+
+  return (result.results || [])
+    .map((item) => ({
+      title: stripSearchText(item.title),
+      url: item.url,
+      description: stripSearchText(item.content),
+      score: item.score,
+    }))
+    .filter((item) => item.url)
+    .slice(0, count);
+}
+
+async function searchProvider(query, count) {
+  if (tavilyApiKey) return tavilySearch(query, count);
+  return braveSearch(query, count);
+}
+
 app.post("/api/screenshot-reference", async (req, res) => {
   try {
     res.json(await captureReference(req.body?.url));
@@ -177,7 +221,7 @@ app.post("/api/search-references", async (req, res) => {
       throw new Error("Введите поисковый запрос");
     }
 
-    const searchResults = await braveSearch(query, count);
+    const searchResults = await searchProvider(query, count);
     const results = [];
 
     for (const result of searchResults) {

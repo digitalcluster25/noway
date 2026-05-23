@@ -9,7 +9,10 @@
 - База формулировок для пользователя, который не обязан говорить языком дизайнера.
 - Генерация направлений для moodboard research.
 - Карточки референсов с оценкой и причинами.
-- Финальная visual strategy и 3 concept routes.
+- Автосохранение проекта в браузере через `localStorage`.
+- Ручной импорт референсов по URL.
+- Финальная visual strategy, которая собирается из выбранных формулировок и оценок.
+- 3 concept routes.
 
 ## Как открыть
 
@@ -41,14 +44,12 @@ docker compose up -d --build
 Обновление после нового push:
 
 ```bash
-cd /opt/noway
-git pull
-docker compose up -d --build
+cd /home/deploy/noway
+./deploy.sh
 ```
 
 ## Следующий слой MVP
 
-- Сохранение состояния проекта.
 - Реальный сбор ссылок и скриншотов референсов.
 - Экспорт moodboard в Notion, Airtable или Figma/FigJam.
 - Генерация промптов под каждый concept route.

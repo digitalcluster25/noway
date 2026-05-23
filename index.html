@@ -49,16 +49,17 @@
           <p class="eyebrow">Live brief</p>
           <div class="summary-item">
             <span>Проект</span>
-            <strong>Home Wood Spa redesign</strong>
+            <strong id="summary-project">Home Wood Spa redesign</strong>
           </div>
           <div class="summary-item">
             <span>Аудитория</span>
-            <strong>Девелоперы, инвесторы, архитекторы</strong>
+            <strong id="summary-audience">Девелоперы, инвесторы, архитекторы</strong>
           </div>
           <div class="summary-item">
             <span>Уровень</span>
-            <strong>Premium architectural wellness</strong>
+            <strong id="summary-positioning">Premium architectural wellness</strong>
           </div>
+          <button class="secondary-action compact" id="reset-project" type="button">Новый проект</button>
         </section>
       </aside>
 
@@ -74,14 +75,27 @@
 
           <div class="brief-grid">
             <article class="panel wide">
-              <label for="project-url">Сайт или объект редизайна</label>
-              <div class="input-row">
-                <input id="project-url" value="https://homewoodspa.com/" />
-                <button class="ghost-action">Анализ</button>
+              <div class="form-grid">
+                <div>
+                  <label for="project-title">Название проекта</label>
+                  <input id="project-title" value="Home Wood Spa redesign" />
+                </div>
+                <div>
+                  <label for="project-url">Сайт или объект редизайна</label>
+                  <input id="project-url" value="https://homewoodspa.com/" />
+                </div>
+                <div>
+                  <label for="project-audience">Аудитория</label>
+                  <input id="project-audience" value="Девелоперы, инвесторы, архитекторы" />
+                </div>
+                <div>
+                  <label for="project-goal">Главная задача</label>
+                  <input id="project-goal" value="Создать впечатление: эти ребята знают толк в дизайне, все будет на уровне" />
+                </div>
               </div>
               <p class="hint">
-                MVP хранит URL как часть брифа. Следующая версия сможет автоматически
-                извлекать структуру, тексты и визуальные слабые места.
+                Данные сохраняются в браузере автоматически. Можно заменить кейс Home Wood Spa
+                на новый проект и пройти тот же пайплайн.
               </p>
             </article>
 
@@ -133,7 +147,23 @@
             <button class="filter" data-filter="photo">Фото</button>
             <button class="filter" data-filter="materials">Материалы</button>
             <button class="filter" data-filter="layout">Сетка</button>
+            <button class="filter" data-filter="manual">Добавленные</button>
           </div>
+
+          <article class="panel import-panel">
+            <div>
+              <p class="eyebrow">Manual import</p>
+              <h3>Добавить референс</h3>
+            </div>
+            <form class="reference-form" id="reference-form">
+              <input id="reference-title" placeholder="Название или суть референса" required />
+              <input id="reference-url" placeholder="URL Behance, Dribbble, Awwwards или сайта" />
+              <select id="reference-direction" aria-label="Направление референса"></select>
+              <input id="reference-tags" placeholder="Теги: typography, photo, layout" />
+              <input id="reference-note" placeholder="Почему он полезен" />
+              <button class="primary-action" type="submit">Добавить</button>
+            </form>
+          </article>
 
           <div class="moodboard-grid" id="moodboard-grid"></div>
         </section>
@@ -150,8 +180,8 @@
           <div class="strategy-layout">
             <article class="panel strategy-card">
               <p class="eyebrow">Recommended strategy</p>
-              <h3>Premium architectural wellness studio</h3>
-              <p>
+              <h3 id="strategy-title">Premium architectural wellness studio</h3>
+              <p id="strategy-copy">
                 Сайт должен ощущаться как портфолио архитектурного бюро с сильным
                 hospitality/wellness слоем: крупные проекты, дорогая типографика,
                 тактильные материалы и минимум декоративных клише.
@@ -159,19 +189,19 @@
               <dl class="strategy-list">
                 <div>
                   <dt>Тон</dt>
-                  <dd>Спокойный, уверенный, архитектурный, материальный.</dd>
+                  <dd id="strategy-tone">Спокойный, уверенный, архитектурный, материальный.</dd>
                 </div>
                 <div>
-                  <dt>Фото</dt>
-                  <dd>Проекты, детали дерева и камня, вода, пар, свет, масштаб.</dd>
+                  <dt>Что усиливать</dt>
+                  <dd id="strategy-likes">Проекты, детали дерева и камня, вода, пар, свет, масштаб.</dd>
                 </div>
                 <div>
                   <dt>UI</dt>
-                  <dd>Editorial-сетка, строгая навигация, мало иконок, больше пространства.</dd>
+                  <dd id="strategy-ui">Editorial-сетка, строгая навигация, мало иконок, больше пространства.</dd>
                 </div>
                 <div>
                   <dt>Избегать</dt>
-                  <dd>SaaS-карточек, банных клише, стоковых людей, кислотных цветов.</dd>
+                  <dd id="strategy-avoid">SaaS-карточек, банных клише, стоковых людей, кислотных цветов.</dd>
                 </div>
               </dl>
             </article>

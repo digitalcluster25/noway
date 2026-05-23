@@ -33,7 +33,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -226,6 +227,11 @@ h3 {
   border-radius: var(--radius);
 }
 
+.compact {
+  width: 100%;
+  margin-top: 14px;
+}
+
 .primary-action {
   color: #fff;
   background: var(--charcoal);
@@ -272,6 +278,22 @@ input {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: #fff;
+}
+
+select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
 }
 
 .hint {
@@ -366,6 +388,14 @@ input {
     linear-gradient(135deg, #efe5d2, #9b8f7b);
 }
 
+.visual-manual {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.48) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(255, 255, 255, 0.36) 1px, transparent 1px),
+    linear-gradient(135deg, #8f5f42, #596a55);
+  background-size: 34px 34px, 34px 34px, auto;
+}
+
 .card-body {
   padding: 18px;
 }
@@ -401,6 +431,36 @@ input {
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 18px;
+}
+
+.import-panel {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+  margin-bottom: 18px;
+}
+
+.import-panel h3 {
+  margin-bottom: 0;
+}
+
+.reference-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  gap: 10px;
+}
+
+.reference-form input:nth-of-type(4) {
+  grid-column: span 2;
+}
+
+.reference-link {
+  display: inline-flex;
+  margin: 0 0 14px;
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: none;
 }
 
 .filter {
@@ -577,6 +637,16 @@ dd {
   .view-header,
   .input-row {
     flex-direction: column;
+  }
+
+  .form-grid,
+  .import-panel,
+  .reference-form {
+    grid-template-columns: 1fr;
+  }
+
+  .reference-form input:nth-of-type(4) {
+    grid-column: auto;
   }
 
   .primary-action,

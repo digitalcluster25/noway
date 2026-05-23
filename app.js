@@ -1,3 +1,5 @@
+const storageKey = "noway-art-direction-project-v2";
+
 const chipData = {
   task: [
     "Редизайн существующего сайта",
@@ -44,29 +46,37 @@ const chipData = {
   ],
 };
 
-const defaults = new Set([
-  "Редизайн существующего сайта",
-  "Поднять визуальный уровень",
-  "Имиджевый сайт для доверия",
-  "Конкурировать с архитектурными студиями",
-  "У них есть вкус",
-  "Это уровень архитектурной студии",
-  "Им можно доверить дорогой объект",
-  "Они понимают материалы и атмосферу",
-  "Архитектурный",
-  "Дорогой минимализм",
-  "Спокойная премиальность",
-  "Contemporary hospitality",
-  "Камень, дерево, вода",
-  "Материальный / tactile",
-  "Natural luxury",
-  "Тихая уверенность",
-  "Шаблонный SaaS-вид",
-  "Банальные wellness-иконки",
-  "Стоковые улыбающиеся люди",
-  "Кислотные цвета",
-  "Слишком пустой минимализм",
-]);
+const defaultSelections = {
+  task: [
+    "Редизайн существующего сайта",
+    "Поднять визуальный уровень",
+    "Имиджевый сайт для доверия",
+    "Конкурировать с архитектурными студиями",
+  ],
+  effect: [
+    "У них есть вкус",
+    "Это уровень архитектурной студии",
+    "Им можно доверить дорогой объект",
+    "Они понимают материалы и атмосферу",
+  ],
+  tone: [
+    "Архитектурный",
+    "Дорогой минимализм",
+    "Спокойная премиальность",
+    "Contemporary hospitality",
+    "Камень, дерево, вода",
+    "Материальный / tactile",
+    "Natural luxury",
+    "Тихая уверенность",
+  ],
+  avoid: [
+    "Шаблонный SaaS-вид",
+    "Банальные wellness-иконки",
+    "Стоковые улыбающиеся люди",
+    "Кислотные цвета",
+    "Слишком пустой минимализм",
+  ],
+};
 
 const directions = [
   {
@@ -107,62 +117,102 @@ const directions = [
   },
 ];
 
-const references = [
+const seedReferences = [
   {
+    id: "seed-1",
     title: "Full-bleed project opening",
     source: "Awwwards pattern",
+    url: "",
+    direction: "Premium Architecture Studio",
     visual: "visual-architecture",
     tags: ["layout", "photo"],
     note: "Первый экран строится вокруг проекта, а не вокруг рекламного слогана.",
+    rating: "",
+    reasons: [],
   },
   {
+    id: "seed-2",
     title: "Editorial serif hierarchy",
     source: "Architecture portfolio",
+    url: "",
+    direction: "Editorial Minimalism",
     visual: "visual-editorial",
     tags: ["typography", "layout"],
     note: "Крупный спокойный заголовок сразу меняет ощущение ценового сегмента.",
+    rating: "",
+    reasons: [],
   },
   {
+    id: "seed-3",
     title: "Water and warm stone",
     source: "Wellness resort",
+    url: "",
+    direction: "Luxury Wellness Resort",
     visual: "visual-wellness",
     tags: ["photo", "materials"],
     note: "Wellness-слой выражается через материалы и свет, а не через иконки.",
+    rating: "",
+    reasons: [],
   },
   {
+    id: "seed-4",
     title: "Material close-up system",
     source: "Interior studio",
+    url: "",
+    direction: "Material & Craft",
     visual: "visual-material",
     tags: ["materials", "photo"],
     note: "Детали помогают доказать качество и ремесленную точность.",
+    rating: "",
+    reasons: [],
   },
   {
+    id: "seed-5",
     title: "Investor presentation grid",
     source: "Hospitality deck",
+    url: "",
+    direction: "Investor-Grade Hospitality",
     visual: "visual-investor",
     tags: ["layout", "typography"],
     note: "Структура подходит для девелоперов: цифры, масштаб, этапы, контроль.",
+    rating: "",
+    reasons: [],
   },
   {
+    id: "seed-6",
     title: "Quiet ritual composition",
     source: "Spa/onsen reference",
+    url: "",
+    direction: "Japanese Spa Restraint",
     visual: "visual-japanese",
     tags: ["photo", "materials"],
     note: "Можно взять сдержанность и ритм, не копируя культурные клише.",
+    rating: "",
+    reasons: [],
   },
   {
+    id: "seed-7",
     title: "Gallery-like project cards",
     source: "Design studio",
+    url: "",
+    direction: "Premium Architecture Studio",
     visual: "visual-architecture",
     tags: ["layout", "photo"],
     note: "Проекты выглядят как коллекция объектов, а не как обычный список услуг.",
+    rating: "",
+    reasons: [],
   },
   {
+    id: "seed-8",
     title: "Warm minimal interface",
     source: "Boutique hotel",
+    url: "",
+    direction: "Luxury Wellness Resort",
     visual: "visual-wellness",
     tags: ["typography", "materials"],
     note: "Хороший баланс между premium и живой человеческой атмосферой.",
+    rating: "",
+    reasons: [],
   },
 ];
 
@@ -206,13 +256,81 @@ const agentCopy = {
   },
 };
 
+const state = loadState();
+
+function createDefaultState() {
+  return {
+    project: {
+      title: "Home Wood Spa redesign",
+      url: "https://homewoodspa.com/",
+      audience: "Девелоперы, инвесторы, архитекторы",
+      goal: "Создать впечатление: эти ребята знают толк в дизайне, все будет на уровне",
+    },
+    selections: structuredClone(defaultSelections),
+    directionStatus: Object.fromEntries(directions.map((item) => [item.title, "keep"])),
+    references: structuredClone(seedReferences),
+    activeFilter: "all",
+  };
+}
+
+function loadState() {
+  const saved = localStorage.getItem(storageKey);
+  if (!saved) return createDefaultState();
+
+  try {
+    return { ...createDefaultState(), ...JSON.parse(saved) };
+  } catch {
+    return createDefaultState();
+  }
+}
+
+function saveState() {
+  localStorage.setItem(storageKey, JSON.stringify(state));
+  renderSummary();
+  renderStrategy();
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+function listOrFallback(items, fallback) {
+  return items.length ? items.join(", ") : fallback;
+}
+
+function renderProjectFields() {
+  document.querySelector("#project-title").value = state.project.title;
+  document.querySelector("#project-url").value = state.project.url;
+  document.querySelector("#project-audience").value = state.project.audience;
+  document.querySelector("#project-goal").value = state.project.goal;
+}
+
+function renderSummary() {
+  document.querySelector("#summary-project").textContent = state.project.title || "Новый проект";
+  document.querySelector("#summary-audience").textContent = state.project.audience || "Аудитория не задана";
+  document.querySelector("#summary-positioning").textContent = buildPositioning();
+}
+
+function buildPositioning() {
+  const hasArchitecture = state.selections.tone.some((item) => item.includes("Архитектур"));
+  const hasWellness = state.selections.tone.some((item) => item.includes("hospitality") || item.includes("Natural"));
+  if (hasArchitecture && hasWellness) return "Premium architectural wellness";
+  if (hasArchitecture) return "Premium architecture direction";
+  return "Premium visual direction";
+}
+
 function renderChips() {
   Object.entries(chipData).forEach(([group, items]) => {
+    const selected = new Set(state.selections[group]);
     const mount = document.querySelector(`[data-group="${group}"]`);
     mount.innerHTML = items
       .map(
         (item) =>
-          `<button class="chip ${defaults.has(item) ? "is-selected" : ""}" type="button">${item}</button>`,
+          `<button class="chip ${selected.has(item) ? "is-selected" : ""}" type="button" data-chip-group="${group}" data-chip="${escapeHtml(item)}">${item}</button>`,
       )
       .join("");
   });
@@ -220,49 +338,71 @@ function renderChips() {
 
 function renderDirections() {
   document.querySelector("#direction-grid").innerHTML = directions
-    .map(
-      (item) => `
+    .map((item) => {
+      const status = state.directionStatus[item.title] || "keep";
+      return `
         <article class="direction-card">
           <div class="direction-visual ${item.visual}"></div>
           <div class="card-body">
+            <div class="meta">
+              <span class="tag">${status === "keep" ? "selected" : status}</span>
+            </div>
             <h3>${item.title}</h3>
             <p>${item.copy}</p>
             <p><strong>Риск:</strong> ${item.risk}</p>
             <div class="card-actions">
-              <button class="mini-button is-active" type="button">Оставить</button>
-              <button class="mini-button" type="button">Ослабить</button>
-              <button class="mini-button" type="button">Убрать</button>
+              <button class="mini-button ${status === "keep" ? "is-active" : ""}" type="button" data-direction="${item.title}" data-direction-status="keep">Оставить</button>
+              <button class="mini-button ${status === "soften" ? "is-active" : ""}" type="button" data-direction="${item.title}" data-direction-status="soften">Ослабить</button>
+              <button class="mini-button ${status === "remove" ? "is-active" : ""}" type="button" data-direction="${item.title}" data-direction-status="remove">Убрать</button>
             </div>
           </div>
         </article>
-      `,
-    )
+      `;
+    })
     .join("");
 }
 
-function renderReferences(filter = "all") {
-  const visible = references.filter((item) => filter === "all" || item.tags.includes(filter));
+function renderReferenceDirectionOptions() {
+  const options = directions
+    .filter((item) => state.directionStatus[item.title] !== "remove")
+    .map((item) => `<option value="${item.title}">${item.title}</option>`)
+    .join("");
+  document.querySelector("#reference-direction").innerHTML = options;
+}
+
+function renderReferences(filter = state.activeFilter) {
+  state.activeFilter = filter;
+  const visible = state.references.filter((item) => {
+    if (filter === "all") return true;
+    if (filter === "manual") return item.manual;
+    return item.tags.includes(filter);
+  });
+
   document.querySelector("#moodboard-grid").innerHTML = visible
     .map(
-      (item, index) => `
+      (item) => `
         <article class="reference-card">
           <div class="reference-visual ${item.visual}"></div>
           <div class="card-body">
             <div class="meta">
-              <span class="tag">${item.source}</span>
-              ${item.tags.map((tag) => `<span class="tag">${tag}</span>`).join("")}
+              <span class="tag">${escapeHtml(item.source || "manual")}</span>
+              <span class="tag">${escapeHtml(item.direction || "No direction")}</span>
+              ${item.tags.map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("")}
             </div>
-            <h3>${item.title}</h3>
-            <p>${item.note}</p>
+            <h3>${escapeHtml(item.title)}</h3>
+            <p>${escapeHtml(item.note)}</p>
+            ${item.url ? `<a class="reference-link" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">Открыть источник</a>` : ""}
             <div class="rating">
-              <button class="mini-button" type="button" data-rate="${index}-like">Нравится</button>
-              <button class="mini-button" type="button" data-rate="${index}-dislike">Не подходит</button>
+              <button class="mini-button ${item.rating === "like" ? "is-active" : ""}" type="button" data-reference="${item.id}" data-rating="like">Нравится</button>
+              <button class="mini-button ${item.rating === "dislike" ? "is-active" : ""}" type="button" data-reference="${item.id}" data-rating="dislike">Не подходит</button>
             </div>
             <div class="reason-row">
-              <button class="reason" type="button">Типографика</button>
-              <button class="reason" type="button">Фото</button>
-              <button class="reason" type="button">Премиальность</button>
-              <button class="reason" type="button">Теплее</button>
+              ${["Типографика", "Фото", "Премиальность", "Теплее", "Сетка", "Материалы"]
+                .map(
+                  (reason) =>
+                    `<button class="reason ${item.reasons.includes(reason) ? "is-selected" : ""}" type="button" data-reference="${item.id}" data-reason="${reason}">${reason}</button>`,
+                )
+                .join("")}
             </div>
           </div>
         </article>
@@ -295,6 +435,38 @@ function renderConcepts() {
     .join("");
 }
 
+function renderStrategy() {
+  const likes = state.references.filter((item) => item.rating === "like");
+  const dislikedReasons = state.references
+    .filter((item) => item.rating === "dislike")
+    .flatMap((item) => item.reasons);
+  const likedReasons = likes.flatMap((item) => item.reasons);
+  const keptDirections = directions
+    .filter((item) => state.directionStatus[item.title] !== "remove")
+    .map((item) => item.title);
+
+  document.querySelector("#strategy-title").textContent = buildPositioning() + " studio";
+  document.querySelector("#strategy-copy").textContent =
+    `${state.project.title || "Проект"} должен выглядеть как ${buildPositioning().toLowerCase()}: ` +
+    "не угадывать стиль по одному промпту, а опираться на выбранные формулировки, направления и оцененные референсы.";
+  document.querySelector("#strategy-tone").textContent = listOrFallback(
+    state.selections.tone.slice(0, 8),
+    "Тон пока не выбран.",
+  );
+  document.querySelector("#strategy-likes").textContent = listOrFallback(
+    [...new Set(likedReasons.length ? likedReasons : likes.map((item) => item.title))].slice(0, 8),
+    "Оцените несколько референсов, чтобы стратегия стала точнее.",
+  );
+  document.querySelector("#strategy-ui").textContent = listOrFallback(
+    keptDirections.slice(0, 5),
+    "Направления пока не выбраны.",
+  );
+  document.querySelector("#strategy-avoid").textContent = listOrFallback(
+    [...new Set([...state.selections.avoid, ...dislikedReasons])].slice(0, 10),
+    "Ограничения пока не выбраны.",
+  );
+}
+
 function setStep(stepId) {
   document.querySelectorAll(".view").forEach((view) => {
     view.classList.toggle("is-active", view.id === stepId);
@@ -306,17 +478,54 @@ function setStep(stepId) {
 
   document.querySelector("#agent-title").textContent = agentCopy[stepId].title;
   document.querySelector("#agent-copy").textContent = agentCopy[stepId].copy;
+  renderStrategy();
+}
+
+function updateProjectFromInputs() {
+  state.project.title = document.querySelector("#project-title").value.trim();
+  state.project.url = document.querySelector("#project-url").value.trim();
+  state.project.audience = document.querySelector("#project-audience").value.trim();
+  state.project.goal = document.querySelector("#project-goal").value.trim();
+  saveState();
 }
 
 function bindEvents() {
   document.addEventListener("click", (event) => {
     const target = event.target;
 
-    if (target.matches(".chip, .mini-button, .reason")) {
-      target.classList.toggle("is-selected");
-      if (target.matches(".mini-button")) {
-        target.classList.toggle("is-active");
-      }
+    if (target.matches("[data-chip]")) {
+      const group = target.dataset.chipGroup;
+      const value = target.dataset.chip;
+      const selected = new Set(state.selections[group]);
+      if (selected.has(value)) selected.delete(value);
+      else selected.add(value);
+      state.selections[group] = [...selected];
+      renderChips();
+      saveState();
+    }
+
+    if (target.matches("[data-direction-status]")) {
+      state.directionStatus[target.dataset.direction] = target.dataset.directionStatus;
+      renderDirections();
+      renderReferenceDirectionOptions();
+      saveState();
+    }
+
+    if (target.matches("[data-rating]")) {
+      const reference = state.references.find((item) => item.id === target.dataset.reference);
+      reference.rating = reference.rating === target.dataset.rating ? "" : target.dataset.rating;
+      renderReferences();
+      saveState();
+    }
+
+    if (target.matches("[data-reason]")) {
+      const reference = state.references.find((item) => item.id === target.dataset.reference);
+      const reasons = new Set(reference.reasons);
+      if (reasons.has(target.dataset.reason)) reasons.delete(target.dataset.reason);
+      else reasons.add(target.dataset.reason);
+      reference.reasons = [...reasons];
+      renderReferences();
+      saveState();
     }
 
     if (target.matches("[data-go]")) {
@@ -331,28 +540,88 @@ function bindEvents() {
       document.querySelectorAll(".filter").forEach((filter) => filter.classList.remove("is-active"));
       target.classList.add("is-active");
       renderReferences(target.dataset.filter);
+      saveState();
     }
+  });
+
+  document.querySelectorAll("#project-title, #project-url, #project-audience, #project-goal").forEach((field) => {
+    field.addEventListener("input", updateProjectFromInputs);
+  });
+
+  document.querySelector("#reference-form").addEventListener("submit", (event) => {
+    event.preventDefault();
+    const tags = document
+      .querySelector("#reference-tags")
+      .value.split(",")
+      .map((tag) => tag.trim().toLowerCase())
+      .filter(Boolean);
+
+    state.references.unshift({
+      id: `manual-${Date.now()}`,
+      title: document.querySelector("#reference-title").value.trim(),
+      source: "Manual import",
+      url: document.querySelector("#reference-url").value.trim(),
+      direction: document.querySelector("#reference-direction").value,
+      visual: "visual-manual",
+      tags: ["manual", ...tags],
+      note: document.querySelector("#reference-note").value.trim() || "Пользователь добавил референс вручную.",
+      rating: "like",
+      reasons: [],
+      manual: true,
+    });
+
+    event.target.reset();
+    renderReferences("manual");
+    document.querySelectorAll(".filter").forEach((filter) => {
+      filter.classList.toggle("is-active", filter.dataset.filter === "manual");
+    });
+    saveState();
+  });
+
+  document.querySelector("#reset-project").addEventListener("click", () => {
+    localStorage.removeItem(storageKey);
+    Object.assign(state, createDefaultState());
+    renderAll();
+    setStep("brief");
   });
 
   document.querySelector("#export-brief").addEventListener("click", async () => {
     const brief = [
-      "Home Wood Spa redesign",
-      "Audience: developers, investors, architects",
-      "Positioning: premium architectural wellness studio",
-      "Tone: architectural, quiet premium, material, natural luxury",
-      "Avoid: SaaS look, generic wellness icons, stock smiling people, acid colors, empty minimalism",
-      "Concept routes: Architectural Editorial, Natural Luxury Wellness, Investor-Grade Hospitality",
+      state.project.title,
+      `URL: ${state.project.url}`,
+      `Audience: ${state.project.audience}`,
+      `Goal: ${state.project.goal}`,
+      `Positioning: ${buildPositioning()}`,
+      `Tone: ${state.selections.tone.join(", ")}`,
+      `Avoid: ${state.selections.avoid.join(", ")}`,
+      `Directions: ${directions
+        .filter((item) => state.directionStatus[item.title] !== "remove")
+        .map((item) => item.title)
+        .join(", ")}`,
+      `Liked references: ${state.references
+        .filter((item) => item.rating === "like")
+        .map((item) => item.title)
+        .join(", ")}`,
     ].join("\n");
 
     await navigator.clipboard.writeText(brief);
     const toast = document.querySelector("#toast");
+    toast.textContent = "Brief скопирован";
     toast.classList.add("is-visible");
     window.setTimeout(() => toast.classList.remove("is-visible"), 1600);
   });
 }
 
-renderChips();
-renderDirections();
-renderReferences();
-renderConcepts();
+function renderAll() {
+  renderProjectFields();
+  renderSummary();
+  renderChips();
+  renderDirections();
+  renderReferenceDirectionOptions();
+  renderReferences();
+  renderConcepts();
+  renderStrategy();
+}
+
+renderAll();
 bindEvents();

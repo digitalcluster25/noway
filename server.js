@@ -358,6 +358,53 @@ function dedupeReferenceResults(results) {
   });
 }
 
+function extractTopicTokens(query) {
+  const genericTokens = new Set([
+    "website",
+    "design",
+    "reference",
+    "case",
+    "study",
+    "homepage",
+    "landing",
+    "premium",
+    "minimal",
+    "brand",
+    "visual",
+    "concept",
+    "font",
+    "typeface",
+    "typography",
+    "logo",
+    "template",
+    "wordpress",
+    "elementor",
+    "article",
+    "blog",
+    "list",
+    "концепт",
+    "сайт",
+    "сайта",
+    "дизайн",
+    "референс",
+    "референсы",
+    "премиальных",
+  ]);
+  return [...new Set(
+    query
+      .replace(/-\S+/g, " ")
+      .toLowerCase()
+      .match(/[\p{L}\p{N}]{4,}/gu) || [],
+  )].filter((token) => !genericTokens.has(token)).slice(0, 16);
+}
+
+function scoreTopicRelevance(item, topicTokens = []) {
+  if (!topicTokens.length) return { hits: 0, score: 0 };
+  const haystack = `${item.title} ${item.description} ${item.url}`.toLowerCase();
+  const hits = topicTokens.filter((token) => haystack.includes(token));
+  return { hits: hits.length, score: Math.min(hits.length * 0.14, 0.7) };
+}
+
 function scoreReferenceResult(item) {
   const url = item.url.toLowerCase();
   const hostname = new URL(item.url).hostname.replace(/^www\./, "");
@@ -473,16 +520,24 @@ function isLowQualityReference(item, sourceId) {
   );
 }
 
-function rankReferenceResults(results, count, sourceId) {
+function rankReferenceResults(results, count, sourceId, relevanceQuery = "") {
+  const topicTokens = extractTopicTokens(relevanceQuery);
   return dedupeReferenceResults(results)
     .filter((item) => isAcceptedSourceReference(item, sourceId) && !isLowQualityReference(item, sourceId))
-    .map((item) => ({ ...item, referenceScore: scoreReferenceResult(item) }))
+    .map((item) => {
+      const topicRelevance = scoreTopicRelevance(item, topicTokens);
+      return {
+        ...item,
+        topicHits: topicRelevance.hits,
+        referenceScore: scoreReferenceResult(item) + topicRelevance.score - (topicTokens.length >= 3 && !topicRelevance.hits ? 0.65 : 0),
+      };
+    })
     .sort((a, b) => b.referenceScore - a.referenceScore)
     .filter((item) => item.referenceScore > -0.75)
     .slice(0, count);
 }
 
-async function braveSearch(query, count, sourceId) {
+async function braveSearch(query, count, sourceId, relevanceQuery = query) {
   if (!braveSearchApiKey) {
     throw new Error("BRAVE_SEARCH_API_KEY не настроен на сервере");
   }
@@ -512,10 +567,10 @@ async function braveSearch(query, count, sourceId) {
       url: item.url,
       description: stripSearchText(item.description),
     }))
-    .filter((item) => item.url), count, sourceId);
+    .filter((item) => item.url), count, sourceId, relevanceQuery);
 }
 
-async function tavilySearch(query, count, domains = [], sourceId) {
+async function tavilySearch(query, count, domains = [], sourceId, relevanceQuery = query) {
   if (!tavilyApiKey) {
     throw new Error("TAVILY_API_KEY не настроен на сервере");
   }
@@ -550,15 +605,15 @@ async function tavilySearch(query, count, domains = [], sourceId) {
       description: stripSearchText(item.content),
       score: item.score,
     }))
-    .filter((item) => item.url), count, sourceId);
+    .filter((item) => item.url), count, sourceId, relevanceQuery);
 }
 
-async function searchProvider(query, count, domains = [], sourceId) {
-  if (tavilyApiKey) return tavilySearch(query, count, domains, sourceId);
+async function searchProvider(query, count, domains = [], sourceId, relevanceQuery = query) {
+  if (tavilyApiKey) return tavilySearch(query, count, domains, sourceId, relevanceQuery);
   if (!braveSearchApiKey) {
     throw new Error("TAVILY_API_KEY не настроен на сервере");
   }
-  return braveSearch(query, count, sourceId);
+  return braveSearch(query, count, sourceId, relevanceQuery);
 }
 
 app.post("/api/screenshot-reference", async (req, res) => {
@@ -615,7 +670,7 @@ app.post("/api/search-references", async (req, res) => {
     for (const source of selectedSources) {
       const sourceConfig = searchSources[source];
       const sourceQuery = `${query} ${sourceConfig.queryHint}`;
-      const results = await searchProvider(sourceQuery, perSourceCount, sourceConfig.domains, source);
+      const results = await searchProvider(sourceQuery, perSourceCount, sourceConfig.domains, source, query);
       groupedResults.push(results.map((item) => ({ ...item, sourceRoute: sourceConfig.label, sourceId: source })));
     }
 

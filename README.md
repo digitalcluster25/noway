@@ -4,7 +4,7 @@
 
 ## Что уже есть
 
-- 5 шагов: Brief, Directions, Discover, Moodboard, Concepts.
+- 6 шагов: Brief, Directions, Language, Discover, Moodboard, Concepts.
 - Предзаполненный кейс Home Wood Spa.
 - База формулировок для пользователя, который не обязан говорить языком дизайнера.
 - Генерация направлений для moodboard research.
@@ -12,6 +12,7 @@
 - Автосохранение проекта в браузере через `localStorage`.
 - Ручной импорт референсов по URL.
 - Reference Tinder: быстрый лайк/дизлайк кандидатов перед moodboard.
+- Design Language слой: поиск строится по визуальным паттернам, а не по отрасли.
 - Понравившиеся кандидаты автоматически попадают в Moodboard Review.
 - Screenshot-style web previews без копирования чужих сайтов и ассетов.
 - Загрузка изображения или скриншота в карточку референса.

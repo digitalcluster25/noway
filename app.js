@@ -243,18 +243,51 @@ const seedReferences = [
 ];
 
 const candidateTemplates = [
-  ["Architecture studio hero page", "Premium Architecture Studio", "visual-architecture", ["hero", "layout", "typography"], ""],
-  ["Luxury wellness landing page", "Luxury Wellness Resort", "visual-wellness", ["hero", "photo", "materials"], ""],
+  ["Editorial hero with large typography", "Premium Architecture Studio", "visual-editorial", ["hero", "typography", "editorial"], ""],
+  ["Premium service storytelling page", "Luxury Wellness Resort", "visual-wellness", ["service-page", "storytelling"], ""],
   ["Material-driven case study page", "Material & Craft", "visual-material", ["materials", "case-study"], ""],
-  ["Investor hospitality project page", "Investor-Grade Hospitality", "visual-investor", ["layout", "proof", "typography"], ""],
-  ["Editorial project index", "Editorial Minimalism", "visual-editorial", ["typography", "project-grid"], ""],
-  ["Quiet resort navigation concept", "Japanese Spa Restraint", "visual-japanese", ["navigation", "layout"], ""],
-  ["Architecture portfolio grid", "Premium Architecture Studio", "visual-architecture", ["project-grid", "photo"], ""],
-  ["Warm wellness service page", "Luxury Wellness Resort", "visual-wellness", ["service-page", "materials"], ""],
-  ["Developer proof section", "Investor-Grade Hospitality", "visual-investor", ["proof", "layout"], ""],
-  ["Craft detail editorial page", "Material & Craft", "visual-material", ["materials", "typography"], ""],
-  ["Minimal hero typography", "Editorial Minimalism", "visual-editorial", ["typography", "hero"], ""],
-  ["Restrained natural luxury site", "Japanese Spa Restraint", "visual-japanese", ["navigation", "materials"], ""],
+  ["Trust proof and process layout", "Investor-Grade Hospitality", "visual-investor", ["layout", "proof", "process"], ""],
+  ["Gallery-style project index", "Editorial Minimalism", "visual-architecture", ["project-grid", "portfolio"], ""],
+  ["Quiet minimal navigation system", "Japanese Spa Restraint", "visual-japanese", ["navigation", "minimal"], ""],
+  ["Full-bleed media landing page", "Premium Architecture Studio", "visual-architecture", ["hero", "media"], ""],
+  ["Warm minimal brand page", "Luxury Wellness Resort", "visual-wellness", ["brand", "materials"], ""],
+  ["Dense but elegant proof blocks", "Investor-Grade Hospitality", "visual-investor", ["proof", "ui-density"], ""],
+  ["Tactile detail storytelling", "Material & Craft", "visual-material", ["materials", "storytelling"], ""],
+  ["Magazine-like content hierarchy", "Editorial Minimalism", "visual-editorial", ["typography", "editorial"], ""],
+  ["Restrained premium service site", "Japanese Spa Restraint", "visual-japanese", ["premium-service", "minimal"], ""],
+];
+
+const languageDimensions = [
+  {
+    title: "Visual tone",
+    copy: "Общее ощущение: premium, editorial, tactile, restrained, warm или technical.",
+    queries: ["quiet premium web design", "warm minimal brand website", "editorial luxury landing page"],
+  },
+  {
+    title: "Layout pattern",
+    copy: "Композиция страницы: hero, project grid, case study, index, longform storytelling.",
+    queries: ["gallery style project index", "large typography hero website", "case study landing page design"],
+  },
+  {
+    title: "Trust mechanism",
+    copy: "Как сайт доказывает уровень: проекты, процесс, цифры, экспертиза, материалы, партнеры.",
+    queries: ["premium service proof section", "process storytelling website", "high-end portfolio proof layout"],
+  },
+  {
+    title: "Media style",
+    copy: "Как используются изображения: full-bleed, detail shots, editorial crops, restrained motion.",
+    queries: ["full bleed media website", "material storytelling web design", "editorial image crop layout"],
+  },
+  {
+    title: "Typography",
+    copy: "Шрифтовой язык: крупный serif, neutral grotesk, magazine hierarchy, quiet captions.",
+    queries: ["large serif typography website", "editorial typography landing page", "premium portfolio typography"],
+  },
+  {
+    title: "UI density",
+    copy: "Насколько интерфейс плотный: галерейный, презентационный, рабочий, dashboard-like, sparse.",
+    queries: ["dense elegant web layout", "minimal premium service website", "portfolio grid navigation"],
+  },
 ];
 
 const concepts = [
@@ -288,9 +321,13 @@ const agentCopy = {
   },
   directions: {
     title: "Теперь превращаем выборы в поисковые направления",
-    copy: "Агент не ищет только spa website. Он уводит исследование в смежные области: архитектура, hospitality, материалы и editorial-подача.",
+    copy: "Агент не ищет по отрасли напрямую. Он превращает ответы в визуальный язык: паттерны, сетки, типографику, media style и способы доказать доверие.",
   },
   moodboard: {
+    title: "Строим универсальный язык поиска",
+    copy: "Business domain не равен reference domain. Здесь формируются запросы по design language, которые потом питают Discover.",
+  },
+  discover: {
     title: "Reference Tinder перед moodboard",
     copy: "Пользователь голосует по одному варианту. Понравившиеся попадают в moodboard, а следующая пачка подгружается уже ближе к выбранному вкусу.",
   },
@@ -318,6 +355,7 @@ function createDefaultState() {
     directionStatus: Object.fromEntries(directions.map((item) => [item.title, "keep"])),
     references: structuredClone(seedReferences),
     candidates: createCandidates(0),
+    languageQueries: structuredClone(languageDimensions),
     conceptStatus: Object.fromEntries(concepts.map((item) => [item.id, "develop"])),
     activeFilter: "all",
   };
@@ -470,6 +508,23 @@ function renderReferenceDirectionOptions() {
     .map((item) => `<option value="${item.title}">${item.title}</option>`)
     .join("");
   document.querySelector("#reference-direction").innerHTML = options;
+}
+
+function renderLanguage() {
+  document.querySelector("#language-grid").innerHTML = state.languageQueries
+    .map(
+      (item) => `
+        <article class="language-item">
+          <p class="eyebrow">${item.title}</p>
+          <h3>${item.title}</h3>
+          <p>${item.copy}</p>
+          <div class="query-list">
+            ${item.queries.map((query) => `<span class="query-pill">${query}</span>`).join("")}
+          </div>
+        </article>
+      `,
+    )
+    .join("");
 }
 
 function getCurrentCandidate() {
@@ -1038,6 +1093,7 @@ function renderAll() {
   renderChips();
   renderDirections();
   renderReferenceDirectionOptions();
+  renderLanguage();
   renderDiscover();
   renderReferences();
   renderConcepts();

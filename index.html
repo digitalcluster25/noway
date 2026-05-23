@@ -28,14 +28,18 @@
           </button>
           <button class="step" data-step="moodboard">
             <span>03</span>
+            <strong>Language</strong>
+          </button>
+          <button class="step" data-step="discover">
+            <span>04</span>
             <strong>Discover</strong>
           </button>
           <button class="step" data-step="moodboard-review">
-            <span>04</span>
+            <span>05</span>
             <strong>Moodboard</strong>
           </button>
           <button class="step" data-step="concepts">
-            <span>05</span>
+            <span>06</span>
             <strong>Concepts</strong>
           </button>
         </nav>
@@ -140,6 +144,29 @@
           <header class="view-header">
             <div>
               <p class="eyebrow">Step 03</p>
+              <h2>Design language search</h2>
+            </div>
+            <button class="primary-action" data-go="discover">Перейти к подбору</button>
+          </header>
+
+          <div class="language-layout">
+            <article class="panel language-card">
+              <p class="eyebrow">Search language</p>
+              <h3>Ищем не отрасль, а визуальный паттерн</h3>
+              <p>
+                Бизнес-домен помогает понять задачу, но референсы лучше искать по
+                визуальному языку: типографика, сетка, storytelling, плотность UI,
+                media style и механика доверия.
+              </p>
+            </article>
+            <div class="language-grid" id="language-grid"></div>
+          </div>
+        </section>
+
+        <section class="view" id="discover">
+          <header class="view-header">
+            <div>
+              <p class="eyebrow">Step 04</p>
               <h2>Discover references</h2>
             </div>
             <button class="primary-action" data-go="moodboard-review">Открыть moodboard</button>
@@ -176,7 +203,7 @@
         <section class="view" id="moodboard-review">
           <header class="view-header">
             <div>
-              <p class="eyebrow">Step 04</p>
+              <p class="eyebrow">Step 05</p>
               <h2>Moodboard review</h2>
             </div>
             <button class="primary-action" data-go="concepts">Собрать стратегию</button>
@@ -217,7 +244,7 @@
         <section class="view" id="concepts">
           <header class="view-header">
             <div>
-              <p class="eyebrow">Step 05</p>
+              <p class="eyebrow">Step 06</p>
               <h2>Visual strategy & concept routes</h2>
             </div>
             <div class="header-actions">

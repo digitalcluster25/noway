@@ -516,6 +516,82 @@ select {
   gap: 16px;
 }
 
+.discover-layout {
+  display: grid;
+  grid-template-columns: minmax(360px, 1fr) 340px;
+  gap: 16px;
+  align-items: stretch;
+}
+
+.discover-card {
+  overflow: hidden;
+  min-height: 620px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: var(--shadow);
+}
+
+.discover-visual {
+  min-height: 380px;
+  background-position: center;
+  background-size: cover;
+}
+
+.discover-body {
+  padding: 24px;
+}
+
+.discover-body h3 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 32px;
+  font-weight: 500;
+}
+
+.discover-body p {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.discover-side {
+  align-self: start;
+}
+
+.discover-side p {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.discover-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.discover-stats div {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--soft);
+}
+
+.discover-stats span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.discover-stats strong {
+  font-size: 28px;
+}
+
+.discover-actions {
+  display: grid;
+  gap: 10px;
+}
+
 .reference-visual {
   min-height: 180px;
   background-position: center;
@@ -721,7 +797,7 @@ dd {
   }
 
   .steps {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
   .brief-summary {
@@ -736,6 +812,10 @@ dd {
   }
 
   .strategy-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .discover-layout {
     grid-template-columns: 1fr;
   }
 }

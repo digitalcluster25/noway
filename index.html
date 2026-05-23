@@ -28,10 +28,14 @@
           </button>
           <button class="step" data-step="moodboard">
             <span>03</span>
+            <strong>Discover</strong>
+          </button>
+          <button class="step" data-step="moodboard-review">
+            <span>04</span>
             <strong>Moodboard</strong>
           </button>
           <button class="step" data-step="concepts">
-            <span>04</span>
+            <span>05</span>
             <strong>Concepts</strong>
           </button>
         </nav>
@@ -127,7 +131,7 @@
               <p class="eyebrow">Step 02</p>
               <h2>Направления для moodboard research</h2>
             </div>
-            <button class="primary-action" data-go="moodboard">Перейти к референсам</button>
+            <button class="primary-action" data-go="moodboard">Перейти к подбору</button>
           </header>
           <div class="direction-grid" id="direction-grid"></div>
         </section>
@@ -136,6 +140,43 @@
           <header class="view-header">
             <div>
               <p class="eyebrow">Step 03</p>
+              <h2>Discover references</h2>
+            </div>
+            <button class="primary-action" data-go="moodboard-review">Открыть moodboard</button>
+          </header>
+
+          <div class="discover-layout">
+            <article class="discover-card" id="discover-card"></article>
+            <aside class="panel discover-side">
+              <p class="eyebrow">Reference Tinder</p>
+              <h3>Быстрый отбор</h3>
+              <p>
+                Голосование снимает с пользователя тяжелую задачу формулировать вкус.
+                Понравившиеся варианты сразу попадают в Moodboard Review.
+              </p>
+              <div class="discover-stats">
+                <div>
+                  <span>В moodboard</span>
+                  <strong id="liked-count">0</strong>
+                </div>
+                <div>
+                  <span>Оценено</span>
+                  <strong id="voted-count">0</strong>
+                </div>
+              </div>
+              <div class="discover-actions">
+                <button class="secondary-action" id="reject-candidate" type="button">Не подходит</button>
+                <button class="primary-action" id="like-candidate" type="button">В moodboard</button>
+                <button class="ghost-action" id="load-candidates" type="button">Подгрузить еще 12</button>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="view" id="moodboard-review">
+          <header class="view-header">
+            <div>
+              <p class="eyebrow">Step 04</p>
               <h2>Moodboard review</h2>
             </div>
             <button class="primary-action" data-go="concepts">Собрать стратегию</button>
@@ -147,6 +188,7 @@
             <button class="filter" data-filter="photo">Фото</button>
             <button class="filter" data-filter="materials">Материалы</button>
             <button class="filter" data-filter="layout">Сетка</button>
+            <button class="filter" data-filter="discover">Из Discover</button>
             <button class="filter" data-filter="manual">Добавленные</button>
           </div>
 
@@ -175,7 +217,7 @@
         <section class="view" id="concepts">
           <header class="view-header">
             <div>
-              <p class="eyebrow">Step 04</p>
+              <p class="eyebrow">Step 05</p>
               <h2>Visual strategy & concept routes</h2>
             </div>
             <div class="header-actions">

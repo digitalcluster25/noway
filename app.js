@@ -224,6 +224,21 @@ const seedReferences = [
   },
 ];
 
+const candidateTemplates = [
+  ["Architectural opening with full-bleed project", "Premium Architecture Studio", "visual-architecture", ["layout", "photo"]],
+  ["Warm resort wellness composition", "Luxury Wellness Resort", "visual-wellness", ["photo", "materials"]],
+  ["Material detail and craft system", "Material & Craft", "visual-material", ["materials", "photo"]],
+  ["Developer-grade hospitality grid", "Investor-Grade Hospitality", "visual-investor", ["layout", "typography"]],
+  ["Editorial serif landing page", "Editorial Minimalism", "visual-editorial", ["typography", "layout"]],
+  ["Quiet spa ritual layout", "Japanese Spa Restraint", "visual-japanese", ["photo", "materials"]],
+  ["Project gallery as architecture catalog", "Premium Architecture Studio", "visual-architecture", ["layout", "photo"]],
+  ["Stone, water and daylight palette", "Luxury Wellness Resort", "visual-wellness", ["materials", "photo"]],
+  ["Precision engineering proof section", "Investor-Grade Hospitality", "visual-investor", ["layout", "typography"]],
+  ["Tactile interior close-up language", "Material & Craft", "visual-material", ["materials", "photo"]],
+  ["Minimal navigation and large typography", "Editorial Minimalism", "visual-editorial", ["typography", "layout"]],
+  ["Restrained natural luxury page", "Japanese Spa Restraint", "visual-japanese", ["photo", "materials"]],
+];
+
 const concepts = [
   {
     id: "architectural-editorial",
@@ -258,6 +273,10 @@ const agentCopy = {
     copy: "Агент не ищет только spa website. Он уводит исследование в смежные области: архитектура, hospitality, материалы и editorial-подача.",
   },
   moodboard: {
+    title: "Reference Tinder перед moodboard",
+    copy: "Пользователь голосует по одному варианту. Понравившиеся попадают в moodboard, а следующая пачка подгружается уже ближе к выбранному вкусу.",
+  },
+  "moodboard-review": {
     title: "Оцениваем не картинку, а причину",
     copy: "Лайк без причины почти бесполезен. MVP собирает, что именно понравилось: типографика, сетка, фото, материалы или ощущение премиальности.",
   },
@@ -280,9 +299,24 @@ function createDefaultState() {
     selections: structuredClone(defaultSelections),
     directionStatus: Object.fromEntries(directions.map((item) => [item.title, "keep"])),
     references: structuredClone(seedReferences),
+    candidates: createCandidates(0),
     conceptStatus: Object.fromEntries(concepts.map((item) => [item.id, "develop"])),
     activeFilter: "all",
   };
+}
+
+function createCandidates(offset = 0) {
+  return candidateTemplates.map(([title, direction, visual, tags], index) => ({
+    id: `candidate-${offset + index + 1}`,
+    title: `${title} ${offset ? `#${offset + index + 1}` : ""}`.trim(),
+    source: ["Awwwards search", "Behance search", "Dribbble search", "Siteinspire search"][index % 4],
+    url: "",
+    direction,
+    visual,
+    tags,
+    note: "Кандидат для быстрого отбора. В реальной версии здесь будет найденный URL, скриншот и источник поиска.",
+    vote: "",
+  }));
 }
 
 function loadState() {
@@ -382,11 +416,83 @@ function renderReferenceDirectionOptions() {
   document.querySelector("#reference-direction").innerHTML = options;
 }
 
+function getCurrentCandidate() {
+  return state.candidates.find((candidate) => !candidate.vote);
+}
+
+function renderDiscover() {
+  const candidate = getCurrentCandidate();
+  const likedCount = state.references.filter((item) => item.fromDiscover).length;
+  const votedCount = state.candidates.filter((item) => item.vote).length;
+  document.querySelector("#liked-count").textContent = likedCount;
+  document.querySelector("#voted-count").textContent = votedCount;
+
+  if (!candidate) {
+    document.querySelector("#discover-card").innerHTML = `
+      <div class="discover-visual visual-editorial"></div>
+      <div class="discover-body">
+        <p class="eyebrow">Пачка закончилась</p>
+        <h3>Нужно больше вариантов</h3>
+        <p>Подгрузите еще 12 кандидатов или переходите в Moodboard Review, если уже достаточно понравившихся референсов.</p>
+      </div>
+    `;
+    return;
+  }
+
+  document.querySelector("#discover-card").innerHTML = `
+    <div class="discover-visual ${candidate.visual}"></div>
+    <div class="discover-body">
+      <div class="meta">
+        <span class="tag">${candidate.source}</span>
+        <span class="tag">${candidate.direction}</span>
+        ${candidate.tags.map((tag) => `<span class="tag">${tag}</span>`).join("")}
+      </div>
+      <h3>${escapeHtml(candidate.title)}</h3>
+      <p>${escapeHtml(candidate.note)}</p>
+    </div>
+  `;
+}
+
+function voteCandidate(vote) {
+  const candidate = getCurrentCandidate();
+  if (!candidate) return;
+  candidate.vote = vote;
+
+  if (vote === "like" && !state.references.some((item) => item.id === `ref-${candidate.id}`)) {
+    state.references.unshift({
+      id: `ref-${candidate.id}`,
+      title: candidate.title,
+      source: candidate.source,
+      url: candidate.url,
+      direction: candidate.direction,
+      visual: candidate.visual,
+      tags: candidate.tags,
+      note: candidate.note,
+      image: "",
+      rating: "like",
+      reasons: [],
+      fromDiscover: true,
+    });
+  }
+
+  renderDiscover();
+  renderReferences();
+  saveState();
+}
+
+function loadMoreCandidates() {
+  const offset = state.candidates.length;
+  state.candidates.push(...createCandidates(offset));
+  renderDiscover();
+  saveState();
+}
+
 function renderReferences(filter = state.activeFilter) {
   state.activeFilter = filter;
   const visible = state.references.filter((item) => {
     if (filter === "all") return true;
     if (filter === "manual") return item.manual;
+    if (filter === "discover") return item.fromDiscover;
     return item.tags.includes(filter);
   });
 
@@ -774,6 +880,10 @@ function bindEvents() {
     field.addEventListener("input", updateProjectFromInputs);
   });
 
+  document.querySelector("#like-candidate").addEventListener("click", () => voteCandidate("like"));
+  document.querySelector("#reject-candidate").addEventListener("click", () => voteCandidate("dislike"));
+  document.querySelector("#load-candidates").addEventListener("click", loadMoreCandidates);
+
   document.querySelector("#reference-image").addEventListener("change", (event) => {
     const file = event.target.files[0];
     document.querySelector("#reference-image-label").textContent = file ? file.name : "Скриншот";
@@ -871,6 +981,7 @@ function renderAll() {
   renderChips();
   renderDirections();
   renderReferenceDirectionOptions();
+  renderDiscover();
   renderReferences();
   renderConcepts();
   renderStrategy();

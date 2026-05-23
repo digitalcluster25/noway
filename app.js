@@ -424,7 +424,9 @@ function renderReferences(filter = state.activeFilter) {
 }
 
 function renderConcepts() {
-  document.querySelector("#concept-grid").innerHTML = concepts
+  const activeConcepts = concepts.filter((item) => state.conceptStatus[item.id] !== "reject");
+  const rejectedConcepts = concepts.filter((item) => state.conceptStatus[item.id] === "reject");
+  const cards = activeConcepts
     .map((item) => {
       const status = state.conceptStatus[item.id] || "develop";
       return `
@@ -449,6 +451,26 @@ function renderConcepts() {
       `;
     })
     .join("");
+  const restoreStrip = rejectedConcepts.length
+    ? `
+      <article class="restore-strip">
+        <div>
+          <p class="eyebrow">Отклоненные</p>
+          <strong>${rejectedConcepts.map((item) => item.title).join(", ")}</strong>
+        </div>
+        <div class="card-actions">
+          ${rejectedConcepts
+            .map(
+              (item) =>
+                `<button class="mini-button" type="button" data-concept="${item.id}" data-concept-status="develop">Вернуть ${item.title}</button>`,
+            )
+            .join("")}
+        </div>
+      </article>
+    `
+    : "";
+
+  document.querySelector("#concept-grid").innerHTML = cards + restoreStrip;
 }
 
 function getPromptPack() {

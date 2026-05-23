@@ -628,6 +628,22 @@ select {
   box-shadow: var(--shadow);
 }
 
+.restore-strip {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.52);
+}
+
+.restore-strip strong {
+  line-height: 1.4;
+}
+
 .prompt-card header {
   display: flex;
   align-items: flex-start;
@@ -774,6 +790,11 @@ dd {
   }
 
   .section-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .restore-strip {
     align-items: stretch;
     flex-direction: column;
   }

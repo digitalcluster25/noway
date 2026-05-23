@@ -127,6 +127,7 @@ const seedReferences = [
     visual: "visual-architecture",
     tags: ["layout", "photo"],
     note: "Первый экран строится вокруг проекта, а не вокруг рекламного слогана.",
+    image: "",
     rating: "",
     reasons: [],
   },
@@ -139,6 +140,7 @@ const seedReferences = [
     visual: "visual-editorial",
     tags: ["typography", "layout"],
     note: "Крупный спокойный заголовок сразу меняет ощущение ценового сегмента.",
+    image: "",
     rating: "",
     reasons: [],
   },
@@ -151,6 +153,7 @@ const seedReferences = [
     visual: "visual-wellness",
     tags: ["photo", "materials"],
     note: "Wellness-слой выражается через материалы и свет, а не через иконки.",
+    image: "",
     rating: "",
     reasons: [],
   },
@@ -163,6 +166,7 @@ const seedReferences = [
     visual: "visual-material",
     tags: ["materials", "photo"],
     note: "Детали помогают доказать качество и ремесленную точность.",
+    image: "",
     rating: "",
     reasons: [],
   },
@@ -175,6 +179,7 @@ const seedReferences = [
     visual: "visual-investor",
     tags: ["layout", "typography"],
     note: "Структура подходит для девелоперов: цифры, масштаб, этапы, контроль.",
+    image: "",
     rating: "",
     reasons: [],
   },
@@ -187,6 +192,7 @@ const seedReferences = [
     visual: "visual-japanese",
     tags: ["photo", "materials"],
     note: "Можно взять сдержанность и ритм, не копируя культурные клише.",
+    image: "",
     rating: "",
     reasons: [],
   },
@@ -199,6 +205,7 @@ const seedReferences = [
     visual: "visual-architecture",
     tags: ["layout", "photo"],
     note: "Проекты выглядят как коллекция объектов, а не как обычный список услуг.",
+    image: "",
     rating: "",
     reasons: [],
   },
@@ -211,6 +218,7 @@ const seedReferences = [
     visual: "visual-wellness",
     tags: ["typography", "materials"],
     note: "Хороший баланс между premium и живой человеческой атмосферой.",
+    image: "",
     rating: "",
     reasons: [],
   },
@@ -382,7 +390,7 @@ function renderReferences(filter = state.activeFilter) {
     .map(
       (item) => `
         <article class="reference-card">
-          <div class="reference-visual ${item.visual}"></div>
+          <div class="reference-visual ${item.image ? "" : item.visual}" ${item.image ? `style="background-image:url('${item.image}')"` : ""}></div>
           <div class="card-body">
             <div class="meta">
               <span class="tag">${escapeHtml(item.source || "manual")}</span>
@@ -489,6 +497,99 @@ function updateProjectFromInputs() {
   saveState();
 }
 
+function readImageFile(file) {
+  if (!file) return Promise.resolve("");
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function getProjectExport() {
+  return {
+    exportedAt: new Date().toISOString(),
+    project: state.project,
+    positioning: buildPositioning(),
+    selections: state.selections,
+    directionStatus: state.directionStatus,
+    references: state.references,
+    strategy: {
+      title: document.querySelector("#strategy-title").textContent,
+      copy: document.querySelector("#strategy-copy").textContent,
+      tone: document.querySelector("#strategy-tone").textContent,
+      likes: document.querySelector("#strategy-likes").textContent,
+      ui: document.querySelector("#strategy-ui").textContent,
+      avoid: document.querySelector("#strategy-avoid").textContent,
+    },
+    concepts,
+  };
+}
+
+function buildMarkdown() {
+  const liked = state.references.filter((item) => item.rating === "like");
+  const disliked = state.references.filter((item) => item.rating === "dislike");
+  const keptDirections = directions.filter((item) => state.directionStatus[item.title] !== "remove");
+
+  return [
+    `# ${state.project.title || "Art Direction Project"}`,
+    "",
+    `URL: ${state.project.url || "-"}`,
+    `Audience: ${state.project.audience || "-"}`,
+    `Goal: ${state.project.goal || "-"}`,
+    `Positioning: ${buildPositioning()}`,
+    "",
+    "## Selected Language",
+    "",
+    `Task: ${state.selections.task.join(", ") || "-"}`,
+    `Effect: ${state.selections.effect.join(", ") || "-"}`,
+    `Tone: ${state.selections.tone.join(", ") || "-"}`,
+    `Avoid: ${state.selections.avoid.join(", ") || "-"}`,
+    "",
+    "## Research Directions",
+    "",
+    ...keptDirections.map((item) => `- ${item.title}: ${item.copy}`),
+    "",
+    "## Liked References",
+    "",
+    ...(liked.length
+      ? liked.map((item) => `- ${item.title}${item.url ? ` (${item.url})` : ""}: ${item.note}`)
+      : ["- No liked references yet."]),
+    "",
+    "## Disliked References",
+    "",
+    ...(disliked.length
+      ? disliked.map((item) => `- ${item.title}${item.reasons.length ? `: ${item.reasons.join(", ")}` : ""}`)
+      : ["- No disliked references yet."]),
+    "",
+    "## Visual Strategy",
+    "",
+    `Title: ${document.querySelector("#strategy-title").textContent}`,
+    "",
+    document.querySelector("#strategy-copy").textContent,
+    "",
+    `Tone: ${document.querySelector("#strategy-tone").textContent}`,
+    `Strengthen: ${document.querySelector("#strategy-likes").textContent}`,
+    `UI: ${document.querySelector("#strategy-ui").textContent}`,
+    `Avoid: ${document.querySelector("#strategy-avoid").textContent}`,
+    "",
+  ].join("\n");
+}
+
+function downloadText(filename, content, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
 function bindEvents() {
   document.addEventListener("click", (event) => {
     const target = event.target;
@@ -548,8 +649,14 @@ function bindEvents() {
     field.addEventListener("input", updateProjectFromInputs);
   });
 
-  document.querySelector("#reference-form").addEventListener("submit", (event) => {
+  document.querySelector("#reference-image").addEventListener("change", (event) => {
+    const file = event.target.files[0];
+    document.querySelector("#reference-image-label").textContent = file ? file.name : "Скриншот";
+  });
+
+  document.querySelector("#reference-form").addEventListener("submit", async (event) => {
     event.preventDefault();
+    const image = await readImageFile(document.querySelector("#reference-image").files[0]);
     const tags = document
       .querySelector("#reference-tags")
       .value.split(",")
@@ -565,12 +672,14 @@ function bindEvents() {
       visual: "visual-manual",
       tags: ["manual", ...tags],
       note: document.querySelector("#reference-note").value.trim() || "Пользователь добавил референс вручную.",
+      image,
       rating: "like",
       reasons: [],
       manual: true,
     });
 
     event.target.reset();
+    document.querySelector("#reference-image-label").textContent = "Скриншот";
     renderReferences("manual");
     document.querySelectorAll(".filter").forEach((filter) => {
       filter.classList.toggle("is-active", filter.dataset.filter === "manual");
@@ -609,6 +718,14 @@ function bindEvents() {
     toast.textContent = "Brief скопирован";
     toast.classList.add("is-visible");
     window.setTimeout(() => toast.classList.remove("is-visible"), 1600);
+  });
+
+  document.querySelector("#export-json").addEventListener("click", () => {
+    downloadText("art-direction-project.json", JSON.stringify(getProjectExport(), null, 2), "application/json");
+  });
+
+  document.querySelector("#export-markdown").addEventListener("click", () => {
+    downloadText("visual-strategy.md", buildMarkdown(), "text/markdown");
   });
 }
 

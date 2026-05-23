@@ -161,6 +161,10 @@
               <select id="reference-direction" aria-label="Направление референса"></select>
               <input id="reference-tags" placeholder="Теги: typography, photo, layout" />
               <input id="reference-note" placeholder="Почему он полезен" />
+              <label class="file-field" for="reference-image">
+                <span id="reference-image-label">Скриншот</span>
+                <input id="reference-image" type="file" accept="image/png,image/jpeg,image/webp" />
+              </label>
               <button class="primary-action" type="submit">Добавить</button>
             </form>
           </article>
@@ -174,7 +178,11 @@
               <p class="eyebrow">Step 04</p>
               <h2>Visual strategy & concept routes</h2>
             </div>
-            <button class="secondary-action" id="export-brief">Скопировать brief</button>
+            <div class="header-actions">
+              <button class="secondary-action" id="export-brief">Скопировать brief</button>
+              <button class="secondary-action" id="export-json">JSON</button>
+              <button class="secondary-action" id="export-markdown">Markdown</button>
+            </div>
           </header>
 
           <div class="strategy-layout">

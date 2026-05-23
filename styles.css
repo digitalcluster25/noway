@@ -219,6 +219,13 @@ h3 {
   margin-bottom: 28px;
 }
 
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .primary-action,
 .secondary-action,
 .ghost-action {
@@ -447,12 +454,34 @@ select {
 
 .reference-form {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto auto;
   gap: 10px;
 }
 
 .reference-form input:nth-of-type(4) {
   grid-column: span 2;
+}
+
+.file-field {
+  display: grid;
+  place-items: center;
+  min-height: 42px;
+  margin: 0;
+  padding: 0 14px;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.file-field input {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .reference-link {
@@ -484,6 +513,8 @@ select {
 
 .reference-visual {
   min-height: 180px;
+  background-position: center;
+  background-size: cover;
 }
 
 .meta {
@@ -637,6 +668,15 @@ dd {
   .view-header,
   .input-row {
     flex-direction: column;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .header-actions .secondary-action {
+    flex: 1 1 100%;
   }
 
   .form-grid,

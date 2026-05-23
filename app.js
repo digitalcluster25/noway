@@ -226,18 +226,21 @@ const seedReferences = [
 
 const concepts = [
   {
+    id: "architectural-editorial",
     title: "Architectural Editorial",
     visual: "visual-editorial",
     copy: "Главная как архитектурное портфолио: большой проект, строгая сетка, serif-заголовки, спокойные подписи.",
     palette: ["#f4f0e8", "#30302d", "#b8ad9d", "#596a55"],
   },
   {
+    id: "natural-luxury-wellness",
     title: "Natural Luxury Wellness",
     visual: "visual-wellness",
     copy: "Теплее и мягче: вода, дерево, свет, slow luxury, ощущение пространства для восстановления.",
     palette: ["#efe6d4", "#8f5f42", "#7e9ea1", "#40514d"],
   },
   {
+    id: "investor-grade-hospitality",
     title: "Investor-Grade Hospitality",
     visual: "visual-investor",
     copy: "Строже и презентационнее: масштаб объектов, комплексность, этапы, доверие к реализации под ключ.",
@@ -277,6 +280,7 @@ function createDefaultState() {
     selections: structuredClone(defaultSelections),
     directionStatus: Object.fromEntries(directions.map((item) => [item.title, "keep"])),
     references: structuredClone(seedReferences),
+    conceptStatus: Object.fromEntries(concepts.map((item) => [item.id, "develop"])),
     activeFilter: "all",
   };
 }
@@ -421,29 +425,34 @@ function renderReferences(filter = state.activeFilter) {
 
 function renderConcepts() {
   document.querySelector("#concept-grid").innerHTML = concepts
-    .map(
-      (item) => `
+    .map((item) => {
+      const status = state.conceptStatus[item.id] || "develop";
+      return `
         <article class="concept-card">
           <div class="concept-visual ${item.visual}"></div>
           <div class="card-body">
+            <div class="meta">
+              <span class="tag">${status === "develop" ? "active" : status}</span>
+            </div>
             <h3>${item.title}</h3>
             <p>${item.copy}</p>
             <div class="palette">
               ${item.palette.map((color) => `<span class="swatch" style="background:${color}"></span>`).join("")}
             </div>
             <div class="card-actions">
-              <button class="mini-button is-active" type="button">Развить</button>
-              <button class="mini-button" type="button">Смешать</button>
-              <button class="mini-button" type="button">Отклонить</button>
+              <button class="mini-button ${status === "develop" ? "is-active" : ""}" type="button" data-concept="${item.id}" data-concept-status="develop">Развить</button>
+              <button class="mini-button ${status === "mix" ? "is-active" : ""}" type="button" data-concept="${item.id}" data-concept-status="mix">Смешать</button>
+              <button class="mini-button ${status === "reject" ? "is-active danger" : ""}" type="button" data-concept="${item.id}" data-concept-status="reject">Отклонить</button>
             </div>
           </div>
         </article>
-      `,
-    )
+      `;
+    })
     .join("");
 }
 
 function getPromptPack() {
+  const activeConcepts = concepts.filter((item) => state.conceptStatus[item.id] !== "reject");
   const tone = listOrFallback(state.selections.tone.slice(0, 8), "premium, precise, editorial");
   const avoid = listOrFallback(state.selections.avoid.slice(0, 10), "generic stock imagery, SaaS layout, cheap icons");
   const audience = state.project.audience || "premium clients";
@@ -454,50 +463,41 @@ function getPromptPack() {
     .slice(0, 6);
   const likedLine = listOrFallback(liked, "large photography, restrained typography, material detail, architectural composition");
 
-  return [
-    {
-      title: "Concept A: Architectural Editorial",
+  const routePrompts = activeConcepts.map((concept, index) => {
+    const routeDetail = {
+      "architectural-editorial":
+        "Use large full-bleed project photography, editorial grid, restrained serif headline, precise spacing, quiet navigation, portfolio-first composition. Homepage sections: hero with one strong project image, short positioning statement, selected projects, process, materials/engineering proof, CTA.",
+      "natural-luxury-wellness":
+        "Use warm stone, wood, water, steam, soft daylight, tactile material close-ups, quiet luxury hospitality mood. Homepage sections: immersive wellness hero, material atmosphere, project gallery, service scope, sensory details, consultation CTA.",
+      "investor-grade-hospitality":
+        "Use confident grid, project scale, calm data blocks, engineering credibility, hospitality-level imagery, strict navigation. Homepage sections: positioning hero, proof of complex delivery, flagship projects, process timeline, partner/developer trust signals, CTA.",
+    }[concept.id];
+    const instruction =
+      state.conceptStatus[concept.id] === "mix"
+        ? "Blend this route with the strongest traits from the other active concept routes, but keep its core direction recognizable."
+        : "Develop this route as a distinct visual concept.";
+
+    return {
+      id: concept.id,
+      title: `Concept ${String.fromCharCode(65 + index)}: ${concept.title}`,
       text: [
         `Create a premium homepage visual concept for ${state.project.title || "a premium design-led company"}.`,
         `Audience: ${audience}.`,
         `Goal: ${goal}.`,
-        "Direction: Architectural Editorial.",
+        `Direction: ${concept.title}.`,
+        `Instruction: ${instruction}`,
         `Visual tone: ${tone}.`,
-        `Use: large full-bleed project photography, editorial grid, restrained serif headline, precise spacing, quiet navigation, portfolio-first composition.`,
+        routeDetail,
         `Take inspiration from liked references: ${likedLine}.`,
-        "Homepage sections: hero with one strong project image, short positioning statement, selected projects, process, materials/engineering proof, CTA.",
         "Output: high-end website mockup, desktop viewport, polished art direction, realistic layout, no placeholder lorem ipsum.",
       ].join("\n"),
-    },
+    };
+  });
+
+  return [
+    ...routePrompts,
     {
-      title: "Concept B: Natural Luxury Wellness",
-      text: [
-        `Create a premium visual concept for ${state.project.title || "a wellness architecture brand"}.`,
-        `Audience: ${audience}.`,
-        `Goal: ${goal}.`,
-        "Direction: Natural Luxury Wellness.",
-        `Visual tone: ${tone}.`,
-        "Use: warm stone, wood, water, steam, soft daylight, tactile material close-ups, quiet luxury hospitality mood.",
-        `Take inspiration from liked references: ${likedLine}.`,
-        "Homepage sections: immersive wellness hero, material atmosphere, project gallery, service scope, sensory details, consultation CTA.",
-        "Output: refined website mockup, warm premium atmosphere, strong photography, elegant typography, no spa cliches.",
-      ].join("\n"),
-    },
-    {
-      title: "Concept C: Investor-Grade Hospitality",
-      text: [
-        `Create a premium presentation-grade homepage for ${state.project.title || "a complex project delivery company"}.`,
-        `Audience: ${audience}.`,
-        `Goal: ${goal}.`,
-        "Direction: Investor-Grade Hospitality.",
-        `Visual tone: ${tone}.`,
-        "Use: confident grid, project scale, calm data blocks, engineering credibility, hospitality-level imagery, strict navigation.",
-        `Take inspiration from liked references: ${likedLine}.`,
-        "Homepage sections: positioning hero, proof of complex delivery, flagship projects, process timeline, partner/developer trust signals, CTA.",
-        "Output: premium website mockup for investors and developers, polished hierarchy, serious but not corporate.",
-      ].join("\n"),
-    },
-    {
+      id: "negative-prompt",
       title: "Negative Prompt",
       text: [
         `Avoid: ${avoid}.`,
@@ -703,6 +703,13 @@ function bindEvents() {
       const reference = state.references.find((item) => item.id === target.dataset.reference);
       reference.rating = reference.rating === target.dataset.rating ? "" : target.dataset.rating;
       renderReferences();
+      saveState();
+    }
+
+    if (target.matches("[data-concept-status]")) {
+      state.conceptStatus[target.dataset.concept] = target.dataset.conceptStatus;
+      renderConcepts();
+      renderPromptPack();
       saveState();
     }
 

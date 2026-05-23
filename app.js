@@ -686,13 +686,47 @@ function buildSearchQuery() {
   const signal = getTasteSignal();
   const likedTags = signal.likedTags.map(([tag]) => tag).slice(0, 4);
   const dislikedTags = signal.dislikedTags.map(([tag]) => tag).slice(0, 3);
-  const tone = state.selections.tone
-    .slice(0, 3)
-    .map((item) => item.replace(/[^\p{L}\p{N}\s-]/gu, ""))
+  const chipSearchMap = {
+    "Редизайн существующего сайта": "website redesign",
+    "Поднять визуальный уровень": "premium website design",
+    "Имиджевый сайт для доверия": "brand website trust",
+    "Портфолио высокого уровня": "portfolio website",
+    "Конкурировать с архитектурными студиями": "architecture studio website",
+    "Заменить PDF-презентацию": "presentation website",
+    "У них есть вкус": "tasteful visual identity",
+    "Это уровень архитектурной студии": "architecture studio",
+    "Им можно доверить дорогой объект": "premium real estate investors",
+    "Они понимают материалы и атмосферу": "materials atmosphere interiors",
+    "Это international premium level": "international premium design",
+    "Они сильны и в дизайне, и в инженерии": "engineering design credibility",
+    "Архитектурный": "architectural website",
+    "Дорогой минимализм": "premium minimal website",
+    "Спокойная премиальность": "quiet luxury website",
+    "Журнальный / editorial": "editorial website",
+    "Галерейный": "gallery portfolio website",
+    "Contemporary hospitality": "contemporary hospitality website",
+    "Камень, дерево, вода": "natural materials wood stone",
+    "Материальный / tactile": "tactile materials design",
+    "Natural luxury": "natural luxury",
+    "Инженерно-точный": "technical precision design",
+    "Тихая уверенность": "quiet confident design",
+    "Пространство как искусство": "spatial design art direction",
+    "Японская сдержанность": "japanese restraint minimal design",
+    "Светлый воздушный": "light airy website",
+    "Сдержанный статус": "restrained premium status",
+  };
+  const selectedSignals = [...state.selections.task, ...state.selections.effect, ...state.selections.tone]
+    .map((item) => chipSearchMap[item] || item)
+    .slice(0, 8);
+  const projectTerms = [state.project.title, state.project.audience, state.project.goal]
+    .filter(Boolean)
+    .join(" ")
+    .replace(/[^\p{L}\p{N}\s-]/gu, " ");
+  const positive = [projectTerms, ...selectedSignals, ...likedTags, "website design reference UI UX case study"]
+    .filter(Boolean)
     .join(" ");
-  const positive = likedTags.length ? likedTags.join(" ") : "premium editorial layout typography";
   const negative = dislikedTags.length ? ` -${dislikedTags.join(" -")}` : "";
-  return `${positive} actual brand website homepage portfolio studio -article -blog -list -awards ${tone}${negative}`
+  return `${positive} -font -typeface -typography-only -logo -branding-only -template -wordpress -elementor -article -blog -list ${negative}`
     .replace(/\s+/g, " ")
     .trim();
 }

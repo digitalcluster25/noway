@@ -17,10 +17,30 @@ const openrouterBriefModel = process.env.OPENROUTER_BRIEF_MODEL || "nvidia/nemot
 const openrouterFallbackModel = process.env.OPENROUTER_FALLBACK_MODEL || "openrouter/free";
 
 const searchSources = {
-  behance: { label: "Behance", domains: ["behance.net"] },
-  dribbble: { label: "Dribbble", domains: ["dribbble.com"] },
-  pinterest: { label: "Pinterest", domains: ["pinterest.com"] },
-  awwwards: { label: "Awwwards", domains: ["awwwards.com"] },
+  behance: {
+    label: "Behance",
+    domains: ["behance.net"],
+    queryHint: "site:behance.net/gallery website design ui ux case study",
+    acceptPath: (pathname) => pathname.startsWith("/gallery/"),
+  },
+  dribbble: {
+    label: "Dribbble",
+    domains: ["dribbble.com"],
+    queryHint: "site:dribbble.com/shots website design landing page homepage",
+    acceptPath: (pathname) => pathname.startsWith("/shots/"),
+  },
+  pinterest: {
+    label: "Pinterest",
+    domains: ["pinterest.com"],
+    queryHint: "site:pinterest.com/pin website design moodboard homepage",
+    acceptPath: (pathname) => pathname.startsWith("/pin/"),
+  },
+  awwwards: {
+    label: "Awwwards",
+    domains: ["awwwards.com"],
+    queryHint: "site:awwwards.com/sites website design",
+    acceptPath: (pathname) => /^\/sites\/[^/]+/.test(pathname),
+  },
 };
 
 const app = express();
@@ -356,14 +376,23 @@ function scoreReferenceResult(item) {
   return score;
 }
 
-function isLowQualityReference(item) {
+function isAcceptedSourceReference(item, sourceId) {
+  if (!sourceId || !searchSources[sourceId]) return true;
+  try {
+    const parsed = new URL(item.url);
+    return searchSources[sourceId].acceptPath(parsed.pathname);
+  } catch {
+    return false;
+  }
+}
+
+function isLowQualityReference(item, sourceId) {
   const url = item.url.toLowerCase();
   const hostname = new URL(item.url).hostname.replace(/^www\./, "");
   const text = `${item.title} ${item.description}`.toLowerCase();
   const blockedDomains = [
     "instagram.com",
     "facebook.com",
-    "pinterest.com",
     "youtube.com",
     "tiktok.com",
     "reddit.com",
@@ -389,22 +418,22 @@ function isLowQualityReference(item) {
   ];
 
   return (
-    blockedDomains.some((domain) => hostname === domain || hostname.endsWith(`.${domain}`)) ||
+    (sourceId !== "pinterest" && blockedDomains.some((domain) => hostname === domain || hostname.endsWith(`.${domain}`))) ||
     blockedUrlParts.some((part) => url.includes(part)) ||
     blockedTextParts.some((part) => text.includes(part))
   );
 }
 
-function rankReferenceResults(results, count) {
+function rankReferenceResults(results, count, sourceId) {
   return results
-    .filter((item) => !isLowQualityReference(item))
+    .filter((item) => isAcceptedSourceReference(item, sourceId) && !isLowQualityReference(item, sourceId))
     .map((item) => ({ ...item, referenceScore: scoreReferenceResult(item) }))
     .sort((a, b) => b.referenceScore - a.referenceScore)
     .filter((item) => item.referenceScore > -0.75)
     .slice(0, count);
 }
 
-async function braveSearch(query, count) {
+async function braveSearch(query, count, sourceId) {
   if (!braveSearchApiKey) {
     throw new Error("BRAVE_SEARCH_API_KEY не настроен на сервере");
   }
@@ -434,10 +463,10 @@ async function braveSearch(query, count) {
       url: item.url,
       description: stripSearchText(item.description),
     }))
-    .filter((item) => item.url), count);
+    .filter((item) => item.url), count, sourceId);
 }
 
-async function tavilySearch(query, count, domains = []) {
+async function tavilySearch(query, count, domains = [], sourceId) {
   if (!tavilyApiKey) {
     throw new Error("TAVILY_API_KEY не настроен на сервере");
   }
@@ -452,7 +481,7 @@ async function tavilySearch(query, count, domains = []) {
       query,
       search_depth: "basic",
       topic: "general",
-      max_results: Math.min(Math.max(count * 3, 10), 20),
+      max_results: Math.min(Math.max(count * 4, 12), 20),
       include_answer: false,
       include_raw_content: false,
       include_images: false,
@@ -472,15 +501,15 @@ async function tavilySearch(query, count, domains = []) {
       description: stripSearchText(item.content),
       score: item.score,
     }))
-    .filter((item) => item.url), count);
+    .filter((item) => item.url), count, sourceId);
 }
 
-async function searchProvider(query, count, domains = []) {
-  if (tavilyApiKey) return tavilySearch(query, count, domains);
+async function searchProvider(query, count, domains = [], sourceId) {
+  if (tavilyApiKey) return tavilySearch(query, count, domains, sourceId);
   if (!braveSearchApiKey) {
     throw new Error("TAVILY_API_KEY не настроен на сервере");
   }
-  return braveSearch(query, count);
+  return braveSearch(query, count, sourceId);
 }
 
 app.post("/api/screenshot-reference", async (req, res) => {
@@ -532,11 +561,12 @@ app.post("/api/search-references", async (req, res) => {
       throw new Error("Выберите хотя бы один источник поиска");
     }
 
-    const perSourceCount = Math.max(2, Math.ceil(count / selectedSources.length));
+    const perSourceCount = Math.max(5, Math.ceil(count / selectedSources.length));
     const groupedResults = [];
     for (const source of selectedSources) {
       const sourceConfig = searchSources[source];
-      const results = await searchProvider(query, perSourceCount, sourceConfig.domains);
+      const sourceQuery = `${query} ${sourceConfig.queryHint}`;
+      const results = await searchProvider(sourceQuery, perSourceCount, sourceConfig.domains, source);
       groupedResults.push(results.map((item) => ({ ...item, sourceRoute: sourceConfig.label, sourceId: source })));
     }
 

@@ -598,6 +598,129 @@ select {
   background-size: cover;
 }
 
+.web-preview {
+  position: relative;
+  display: grid;
+  min-height: inherit;
+  grid-template-rows: 38px 1fr 1.25fr 66px;
+  overflow: hidden;
+  background: #f7f3eb;
+}
+
+.web-preview.large {
+  min-height: 380px;
+  grid-template-rows: 48px 1.15fr 1.3fr 88px;
+}
+
+.web-nav {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 0 20px;
+  border-bottom: 1px solid rgba(32, 32, 29, 0.12);
+}
+
+.web-nav::before {
+  content: "";
+  margin-right: auto;
+  width: 54px;
+  height: 11px;
+  background: currentColor;
+  opacity: 0.7;
+}
+
+.web-nav span {
+  width: 42px;
+  height: 6px;
+  background: currentColor;
+  opacity: 0.28;
+}
+
+.web-hero {
+  display: grid;
+  align-content: center;
+  gap: 12px;
+  padding: 22px;
+}
+
+.web-title {
+  width: 72%;
+  height: 34px;
+  background: currentColor;
+}
+
+.web-subtitle {
+  width: 46%;
+  height: 8px;
+  background: currentColor;
+  opacity: 0.28;
+}
+
+.web-media {
+  margin: 0 22px;
+  background:
+    linear-gradient(110deg, rgba(255, 255, 255, 0.2), transparent 38%),
+    linear-gradient(135deg, var(--preview-a), var(--preview-b));
+}
+
+.web-content {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr 0.7fr 0.5fr;
+  gap: 10px;
+  padding: 18px 22px;
+}
+
+.web-content.grid {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.web-content.proof {
+  grid-template-columns: 1.4fr repeat(3, 0.7fr);
+}
+
+.web-content span {
+  min-height: 24px;
+  background: currentColor;
+  opacity: 0.16;
+}
+
+.web-preview.architecture {
+  --preview-a: #d9d2c4;
+  --preview-b: #5d625d;
+  color: #252623;
+}
+
+.web-preview.wellness {
+  --preview-a: #d6bf9e;
+  --preview-b: #6f9497;
+  color: #2e3d39;
+}
+
+.web-preview.material {
+  --preview-a: #b29370;
+  --preview-b: #35312a;
+  color: #2d241e;
+}
+
+.web-preview.investor {
+  --preview-a: #343633;
+  --preview-b: #989483;
+  color: #2b2c29;
+}
+
+.web-preview.editorial {
+  --preview-a: #f3eee4;
+  --preview-b: #282a26;
+  color: #1f201d;
+}
+
+.web-preview.japanese {
+  --preview-a: #eee3cf;
+  --preview-b: #84958d;
+  color: #31352f;
+}
+
 .meta {
   display: flex;
   flex-wrap: wrap;

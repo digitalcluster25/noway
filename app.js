@@ -9,6 +9,15 @@ const hwsImages = {
   lobby: "assets/hws-hospitality-lobby.png",
 };
 
+const previewTone = {
+  "visual-architecture": "architecture",
+  "visual-wellness": "wellness",
+  "visual-material": "material",
+  "visual-investor": "investor",
+  "visual-editorial": "editorial",
+  "visual-japanese": "japanese",
+};
+
 const chipData = {
   task: [
     "Редизайн существующего сайта",
@@ -134,7 +143,7 @@ const seedReferences = [
     url: "",
     direction: "Premium Architecture Studio",
     visual: "visual-architecture",
-    image: hwsImages.pool,
+    image: "",
     tags: ["layout", "photo"],
     note: "Первый экран строится вокруг проекта, а не вокруг рекламного слогана.",
     rating: "",
@@ -147,7 +156,7 @@ const seedReferences = [
     url: "",
     direction: "Editorial Minimalism",
     visual: "visual-editorial",
-    image: hwsImages.sauna,
+    image: "",
     tags: ["typography", "layout"],
     note: "Крупный спокойный заголовок сразу меняет ощущение ценового сегмента.",
     rating: "",
@@ -160,7 +169,7 @@ const seedReferences = [
     url: "",
     direction: "Luxury Wellness Resort",
     visual: "visual-wellness",
-    image: hwsImages.hammam,
+    image: "",
     tags: ["photo", "materials"],
     note: "Wellness-слой выражается через материалы и свет, а не через иконки.",
     rating: "",
@@ -173,7 +182,7 @@ const seedReferences = [
     url: "",
     direction: "Material & Craft",
     visual: "visual-material",
-    image: hwsImages.material,
+    image: "",
     tags: ["materials", "photo"],
     note: "Детали помогают доказать качество и ремесленную точность.",
     rating: "",
@@ -186,7 +195,7 @@ const seedReferences = [
     url: "",
     direction: "Investor-Grade Hospitality",
     visual: "visual-investor",
-    image: hwsImages.lobby,
+    image: "",
     tags: ["layout", "typography"],
     note: "Структура подходит для девелоперов: цифры, масштаб, этапы, контроль.",
     rating: "",
@@ -199,7 +208,7 @@ const seedReferences = [
     url: "",
     direction: "Japanese Spa Restraint",
     visual: "visual-japanese",
-    image: hwsImages.exterior,
+    image: "",
     tags: ["photo", "materials"],
     note: "Можно взять сдержанность и ритм, не копируя культурные клише.",
     rating: "",
@@ -212,7 +221,7 @@ const seedReferences = [
     url: "",
     direction: "Premium Architecture Studio",
     visual: "visual-architecture",
-    image: hwsImages.pool,
+    image: "",
     tags: ["layout", "photo"],
     note: "Проекты выглядят как коллекция объектов, а не как обычный список услуг.",
     rating: "",
@@ -225,7 +234,7 @@ const seedReferences = [
     url: "",
     direction: "Luxury Wellness Resort",
     visual: "visual-wellness",
-    image: hwsImages.material,
+    image: "",
     tags: ["typography", "materials"],
     note: "Хороший баланс между premium и живой человеческой атмосферой.",
     rating: "",
@@ -234,18 +243,18 @@ const seedReferences = [
 ];
 
 const candidateTemplates = [
-  ["Architectural opening with full-bleed project", "Premium Architecture Studio", "visual-architecture", ["layout", "photo"], hwsImages.pool],
-  ["Warm resort wellness composition", "Luxury Wellness Resort", "visual-wellness", ["photo", "materials"], hwsImages.hammam],
-  ["Material detail and craft system", "Material & Craft", "visual-material", ["materials", "photo"], hwsImages.material],
-  ["Developer-grade hospitality grid", "Investor-Grade Hospitality", "visual-investor", ["layout", "typography"], hwsImages.lobby],
-  ["Editorial sauna typography direction", "Editorial Minimalism", "visual-editorial", ["typography", "layout"], hwsImages.sauna],
-  ["Quiet spa ritual exterior", "Japanese Spa Restraint", "visual-japanese", ["photo", "materials"], hwsImages.exterior],
-  ["Project gallery as architecture catalog", "Premium Architecture Studio", "visual-architecture", ["layout", "photo"], hwsImages.pool],
-  ["Stone, water and daylight palette", "Luxury Wellness Resort", "visual-wellness", ["materials", "photo"], hwsImages.material],
-  ["Precision hospitality lobby language", "Investor-Grade Hospitality", "visual-investor", ["layout", "typography"], hwsImages.lobby],
-  ["Tactile interior close-up language", "Material & Craft", "visual-material", ["materials", "photo"], hwsImages.material],
-  ["Warm wood and controlled light", "Editorial Minimalism", "visual-editorial", ["typography", "layout"], hwsImages.sauna],
-  ["Restrained natural luxury resort", "Japanese Spa Restraint", "visual-japanese", ["photo", "materials"], hwsImages.exterior],
+  ["Architecture studio hero page", "Premium Architecture Studio", "visual-architecture", ["hero", "layout", "typography"], ""],
+  ["Luxury wellness landing page", "Luxury Wellness Resort", "visual-wellness", ["hero", "photo", "materials"], ""],
+  ["Material-driven case study page", "Material & Craft", "visual-material", ["materials", "case-study"], ""],
+  ["Investor hospitality project page", "Investor-Grade Hospitality", "visual-investor", ["layout", "proof", "typography"], ""],
+  ["Editorial project index", "Editorial Minimalism", "visual-editorial", ["typography", "project-grid"], ""],
+  ["Quiet resort navigation concept", "Japanese Spa Restraint", "visual-japanese", ["navigation", "layout"], ""],
+  ["Architecture portfolio grid", "Premium Architecture Studio", "visual-architecture", ["project-grid", "photo"], ""],
+  ["Warm wellness service page", "Luxury Wellness Resort", "visual-wellness", ["service-page", "materials"], ""],
+  ["Developer proof section", "Investor-Grade Hospitality", "visual-investor", ["proof", "layout"], ""],
+  ["Craft detail editorial page", "Material & Craft", "visual-material", ["materials", "typography"], ""],
+  ["Minimal hero typography", "Editorial Minimalism", "visual-editorial", ["typography", "hero"], ""],
+  ["Restrained natural luxury site", "Japanese Spa Restraint", "visual-japanese", ["navigation", "materials"], ""],
 ];
 
 const concepts = [
@@ -359,19 +368,40 @@ function listOrFallback(items, fallback) {
 }
 
 function imageForVisual(visual) {
-  const map = {
-    "visual-architecture": hwsImages.pool,
-    "visual-wellness": hwsImages.hammam,
-    "visual-material": hwsImages.material,
-    "visual-investor": hwsImages.lobby,
-    "visual-editorial": hwsImages.sauna,
-    "visual-japanese": hwsImages.exterior,
-  };
-  return map[visual] || "";
+  return "";
 }
 
 function referenceImage(item) {
   return item.image || imageForVisual(item.visual);
+}
+
+function webPreview(item, size = "reference") {
+  const tone = previewTone[item.visual] || "architecture";
+  const projectBars = item.tags?.includes("project-grid") || item.tags?.includes("layout");
+  const proof = item.tags?.includes("proof") || item.tags?.includes("case-study");
+  return `
+    <div class="web-preview ${tone} ${size}">
+      <div class="web-nav">
+        <span></span><span></span><span></span>
+      </div>
+      <div class="web-hero">
+        <div class="web-title"></div>
+        <div class="web-subtitle"></div>
+      </div>
+      <div class="web-media"></div>
+      <div class="web-content ${projectBars ? "grid" : ""} ${proof ? "proof" : ""}">
+        <span></span><span></span><span></span><span></span>
+      </div>
+    </div>
+  `;
+}
+
+function visualMarkup(item, className) {
+  const image = referenceImage(item);
+  if (image) {
+    return `<div class="${className}" style="background-image:url('${image}')"></div>`;
+  }
+  return `<div class="${className}">${webPreview(item, className.includes("discover") ? "large" : "reference")}</div>`;
 }
 
 function renderProjectFields() {
@@ -466,7 +496,7 @@ function renderDiscover() {
   }
 
   document.querySelector("#discover-card").innerHTML = `
-    <div class="discover-visual ${candidate.image ? "" : candidate.visual}" ${candidate.image ? `style="background-image:url('${candidate.image}')"` : ""}></div>
+    ${visualMarkup(candidate, "discover-visual")}
     <div class="discover-body">
       <div class="meta">
         <span class="tag">${candidate.source}</span>
@@ -525,10 +555,9 @@ function renderReferences(filter = state.activeFilter) {
 
   document.querySelector("#moodboard-grid").innerHTML = visible
     .map((item) => {
-      const image = referenceImage(item);
       return `
         <article class="reference-card">
-          <div class="reference-visual ${image ? "" : item.visual}" ${image ? `style="background-image:url('${image}')"` : ""}></div>
+          ${visualMarkup(item, "reference-visual")}
           <div class="card-body">
             <div class="meta">
               <span class="tag">${escapeHtml(item.source || "manual")}</span>

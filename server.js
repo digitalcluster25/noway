@@ -180,6 +180,14 @@ function normalizeBriefArray(items, allowed) {
   return [...new Set(items.filter((item) => allowed.includes(item)))];
 }
 
+function normalizeCustomBriefArray(items, baseOptions) {
+  if (!Array.isArray(items)) return [];
+  const base = new Set(baseOptions);
+  return [...new Set(items.map(stripSearchText))]
+    .filter((item) => item.length >= 3 && item.length <= 72 && !base.has(item))
+    .slice(0, 6);
+}
+
 function extractJsonObject(text) {
   const cleaned = String(text || "").replace(/```json|```/g, "").trim();
   const start = cleaned.indexOf("{");
@@ -213,6 +221,8 @@ async function requestBriefFromOpenRouter(wish, model) {
             "Convert the user's rough request into a concise website art-direction brief.",
             "Return only valid JSON. Use Russian for all text fields.",
             "For task/effect/tone/avoid, choose only exact values from the provided option lists.",
+            "Also add project-specific customOptions for each group when the base options are too generic.",
+            "Custom options must be short selectable phrases, not explanations.",
             "Do not invent a URL. If no URL is present, return an empty string.",
           ].join(" "),
         },
@@ -230,6 +240,12 @@ async function requestBriefFromOpenRouter(wish, model) {
               effect: ["exact option"],
               tone: ["exact option"],
               avoid: ["exact option"],
+              customOptions: {
+                task: ["project-specific option"],
+                effect: ["project-specific option"],
+                tone: ["project-specific option"],
+                avoid: ["project-specific option"],
+              },
               questions: ["optional clarification question"],
             },
           }),
@@ -256,9 +272,20 @@ async function requestBriefFromOpenRouter(wish, model) {
               effect: { type: "array", items: { type: "string", enum: briefOptions.effect } },
               tone: { type: "array", items: { type: "string", enum: briefOptions.tone } },
               avoid: { type: "array", items: { type: "string", enum: briefOptions.avoid } },
+              customOptions: {
+                type: "object",
+                additionalProperties: false,
+                properties: {
+                  task: { type: "array", items: { type: "string" } },
+                  effect: { type: "array", items: { type: "string" } },
+                  tone: { type: "array", items: { type: "string" } },
+                  avoid: { type: "array", items: { type: "string" } },
+                },
+                required: ["task", "effect", "tone", "avoid"],
+              },
               questions: { type: "array", items: { type: "string" } },
             },
-            required: ["title", "url", "audience", "goal", "task", "effect", "tone", "avoid", "questions"],
+            required: ["title", "url", "audience", "goal", "task", "effect", "tone", "avoid", "customOptions", "questions"],
           },
         },
       },
@@ -281,6 +308,12 @@ async function requestBriefFromOpenRouter(wish, model) {
     effect: normalizeBriefArray(parsed?.effect, briefOptions.effect),
     tone: normalizeBriefArray(parsed?.tone, briefOptions.tone),
     avoid: normalizeBriefArray(parsed?.avoid, briefOptions.avoid),
+    customOptions: {
+      task: normalizeCustomBriefArray(parsed?.customOptions?.task, briefOptions.task),
+      effect: normalizeCustomBriefArray(parsed?.customOptions?.effect, briefOptions.effect),
+      tone: normalizeCustomBriefArray(parsed?.customOptions?.tone, briefOptions.tone),
+      avoid: normalizeCustomBriefArray(parsed?.customOptions?.avoid, briefOptions.avoid),
+    },
     questions: Array.isArray(parsed?.questions) ? parsed.questions.map(stripSearchText).filter(Boolean).slice(0, 3) : [],
   };
 }

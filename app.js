@@ -71,6 +71,13 @@ const defaultSelections = {
   avoid: [],
 };
 
+const defaultCustomOptions = {
+  task: [],
+  effect: [],
+  tone: [],
+  avoid: [],
+};
+
 const directions = [
   {
     title: "Premium Architecture Studio",
@@ -348,6 +355,7 @@ function createDefaultState() {
       wish: "",
     },
     selections: structuredClone(defaultSelections),
+    customOptions: structuredClone(defaultCustomOptions),
     directionStatus: Object.fromEntries(directions.map((item) => [item.title, "keep"])),
     references: [],
     candidates: [],
@@ -392,6 +400,7 @@ function loadState() {
 }
 
 function normalizeState(nextState) {
+  nextState.customOptions = { ...structuredClone(defaultCustomOptions), ...(nextState.customOptions || {}) };
   nextState.references = (nextState.references || []).filter((item) => item.image || item.url || item.manual || item.fromDiscover);
   nextState.candidates = (nextState.candidates || []).filter((item) => item.image || item.url || item.fromSearch || item.fromBatch);
   nextState.searchSources = nextState.searchSources?.length
@@ -448,6 +457,7 @@ async function applyWishBrief() {
       tone: brief.tone || [],
       avoid: brief.avoid || [],
     };
+    state.customOptions = { ...structuredClone(defaultCustomOptions), ...(brief.customOptions || {}) };
     state.references = [];
     state.candidates = [];
     renderProjectFields();
@@ -607,13 +617,17 @@ function buildPositioning() {
 }
 
 function renderChips() {
-  Object.entries(chipData).forEach(([group, items]) => {
+  Object.entries(chipData).forEach(([group, baseItems]) => {
+    const customItems = state.customOptions?.[group] || [];
+    const items = [...new Set([...baseItems, ...customItems])];
     const selected = new Set(state.selections[group]);
     const mount = document.querySelector(`[data-group="${group}"]`);
     mount.innerHTML = items
       .map(
-        (item) =>
-          `<button class="chip ${selected.has(item) ? "is-selected" : ""}" type="button" data-chip-group="${group}" data-chip="${escapeHtml(item)}">${item}</button>`,
+        (item) => {
+          const isCustom = customItems.includes(item);
+          return `<button class="chip ${selected.has(item) ? "is-selected" : ""} ${isCustom ? "is-custom" : ""}" type="button" data-chip-group="${group}" data-chip="${escapeHtml(item)}">${item}</button>`;
+        },
       )
       .join("");
   });

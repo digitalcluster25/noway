@@ -381,6 +381,16 @@ select {
   border-color: var(--moss);
 }
 
+.chip.is-custom {
+  border-style: dashed;
+  background: #fbfaf7;
+}
+
+.chip.is-custom.is-selected {
+  border-style: solid;
+  background: var(--moss);
+}
+
 .dense .chip {
   padding: 8px 10px;
   font-size: 13px;

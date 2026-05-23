@@ -215,8 +215,31 @@ async function createBriefFromWish(wish) {
         },
       ],
       temperature: 0.2,
+      provider: {
+        require_parameters: true,
+      },
       response_format: {
-        type: "json_object",
+        type: "json_schema",
+        json_schema: {
+          name: "brief_from_wish",
+          strict: true,
+          schema: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              title: { type: "string" },
+              url: { type: "string" },
+              audience: { type: "string" },
+              goal: { type: "string" },
+              task: { type: "array", items: { type: "string", enum: briefOptions.task } },
+              effect: { type: "array", items: { type: "string", enum: briefOptions.effect } },
+              tone: { type: "array", items: { type: "string", enum: briefOptions.tone } },
+              avoid: { type: "array", items: { type: "string", enum: briefOptions.avoid } },
+              questions: { type: "array", items: { type: "string" } },
+            },
+            required: ["title", "url", "audience", "goal", "task", "effect", "tone", "avoid", "questions"],
+          },
+        },
       },
     }),
   });

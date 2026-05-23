@@ -1011,24 +1011,32 @@ function bindEvents() {
   document.querySelector("#reference-image").addEventListener("change", (event) => {
     const file = event.target.files[0];
     document.querySelector("#reference-image-label").textContent = file ? file.name : "Скриншот";
+    document.querySelector("#reference-submit").textContent = file ? "Добавить файл" : "Добавить с screenshot";
   });
 
   document.querySelector("#reference-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     const status = document.querySelector("#reference-status");
+    const submit = document.querySelector("#reference-submit");
     const url = document.querySelector("#reference-url").value.trim();
     const file = document.querySelector("#reference-image").files[0];
     let image = await readImageFile(file);
     let screenshot = null;
-    status.textContent = "";
+    status.className = "form-status";
+    status.textContent = url && !image ? "Готовлю screenshot..." : "";
+    submit.disabled = true;
 
     if (url && !image) {
       status.textContent = "Делаю screenshot URL...";
+      status.classList.add("is-working");
       try {
         screenshot = await screenshotReference(url);
         image = screenshot.preview;
+        status.classList.remove("is-working");
         status.textContent = "Screenshot готов и добавлен в карточку.";
       } catch (error) {
+        status.classList.remove("is-working");
+        status.classList.add("is-error");
         status.textContent = `${error.message}. Карточка добавлена без screenshot.`;
       }
     }
@@ -1056,6 +1064,8 @@ function bindEvents() {
 
     event.target.reset();
     document.querySelector("#reference-image-label").textContent = "Скриншот";
+    document.querySelector("#reference-submit").textContent = "Добавить с screenshot";
+    submit.disabled = false;
     renderReferences("manual");
     document.querySelectorAll(".filter").forEach((filter) => {
       filter.classList.toggle("is-active", filter.dataset.filter === "manual");

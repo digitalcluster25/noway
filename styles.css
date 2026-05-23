@@ -457,6 +457,12 @@ select {
   margin-bottom: 0;
 }
 
+.panel-copy {
+  margin: 10px 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
 .reference-form {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr)) auto auto;
@@ -473,6 +479,16 @@ select {
   color: var(--muted);
   font-size: 13px;
   line-height: 1.4;
+}
+
+.form-status.is-working {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.form-status.is-error {
+  color: #7e3f36;
+  font-weight: 700;
 }
 
 .file-field {

@@ -222,11 +222,15 @@
           <article class="panel import-panel">
             <div>
               <p class="eyebrow">Manual import</p>
-              <h3>Добавить референс</h3>
+              <h3>URL → screenshot</h3>
+              <p class="panel-copy">
+                Вставьте ссылку на сайт. Если файл не выбран, сервер сам сделает screenshot
+                и добавит preview в карточку.
+              </p>
             </div>
             <form class="reference-form" id="reference-form">
               <input id="reference-title" placeholder="Название или суть референса" required />
-              <input id="reference-url" placeholder="URL Behance, Dribbble, Awwwards или сайта" />
+              <input id="reference-url" placeholder="https://example.com" />
               <select id="reference-direction" aria-label="Направление референса"></select>
               <input id="reference-tags" placeholder="Теги: typography, photo, layout" />
               <input id="reference-note" placeholder="Почему он полезен" />
@@ -234,7 +238,7 @@
                 <span id="reference-image-label">Скриншот</span>
                 <input id="reference-image" type="file" accept="image/png,image/jpeg,image/webp" />
               </label>
-              <button class="primary-action" type="submit">Добавить</button>
+              <button class="primary-action" id="reference-submit" type="submit">Добавить с screenshot</button>
               <p class="form-status" id="reference-status" role="status" aria-live="polite"></p>
             </form>
           </article>

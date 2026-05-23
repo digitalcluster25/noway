@@ -660,6 +660,26 @@ select {
   gap: 10px;
 }
 
+.batch-form {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+textarea {
+  width: 100%;
+  resize: vertical;
+  padding: 12px 14px;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  font: inherit;
+  line-height: 1.45;
+}
+
 .reference-visual {
   min-height: 180px;
   background-position: center;

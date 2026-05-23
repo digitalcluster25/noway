@@ -56,16 +56,16 @@ async function validatePublicUrl(rawUrl) {
   return parsed.toString();
 }
 
-app.post("/api/screenshot-reference", async (req, res) => {
+async function captureReference(rawUrl) {
   let browser;
-  try {
-    const targetUrl = await validatePublicUrl(req.body?.url);
-    await fs.mkdir(screenshotDir, { recursive: true });
+  const targetUrl = await validatePublicUrl(rawUrl);
+  await fs.mkdir(screenshotDir, { recursive: true });
 
-    browser = await chromium.launch({
-      headless: true,
-      args: ["--disable-dev-shm-usage"],
-    });
+  browser = await chromium.launch({
+    headless: true,
+    args: ["--disable-dev-shm-usage"],
+  });
+  try {
     const page = await browser.newPage({
       viewport: { width: 1440, height: 1100 },
       deviceScaleFactor: 1,
@@ -79,17 +79,38 @@ app.post("/api/screenshot-reference", async (req, res) => {
     const outputPath = path.join(screenshotDir, filename);
     await page.screenshot({ path: outputPath, fullPage: false });
 
-    res.json({
+    return {
       title,
       url: targetUrl,
       source: new URL(targetUrl).hostname.replace(/^www\./, ""),
       preview: `/generated/screenshots/${filename}`,
-    });
-  } catch (error) {
-    res.status(400).json({ error: error.message || "Не удалось сделать screenshot" });
+    };
   } finally {
     if (browser) await browser.close();
   }
+}
+
+app.post("/api/screenshot-reference", async (req, res) => {
+  try {
+    res.json(await captureReference(req.body?.url));
+  } catch (error) {
+    res.status(400).json({ error: error.message || "Не удалось сделать screenshot" });
+  }
+});
+
+app.post("/api/screenshot-batch", async (req, res) => {
+  const urls = Array.isArray(req.body?.urls) ? req.body.urls.slice(0, 20) : [];
+  const results = [];
+
+  for (const url of urls) {
+    try {
+      results.push({ ok: true, ...(await captureReference(url)) });
+    } catch (error) {
+      results.push({ ok: false, url, error: error.message || "Не удалось сделать screenshot" });
+    }
+  }
+
+  res.json({ results });
 });
 
 app.get("*", (req, res) => {

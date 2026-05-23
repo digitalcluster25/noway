@@ -16,6 +16,7 @@
 - Понравившиеся кандидаты автоматически попадают в Moodboard Review.
 - Screenshot-style web previews без копирования чужих сайтов и ассетов.
 - Backend screenshot API: URL в ручном импорте превращается в preview-картинку.
+- Batch URL import: список ссылок превращается в очередь Discover-кандидатов со screenshots.
 - Загрузка изображения или скриншота в карточку референса.
 - Финальная visual strategy, которая собирается из выбранных формулировок и оценок.
 - 3 concept routes.

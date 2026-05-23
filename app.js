@@ -598,6 +598,42 @@ function loadMoreCandidates() {
   saveState();
 }
 
+async function screenshotBatch(urls) {
+  const response = await fetch("/api/screenshot-batch", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ urls }),
+  });
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.error || "Не удалось сделать пачку");
+  }
+  return result.results;
+}
+
+function addBatchCandidates(results) {
+  const successful = results.filter((item) => item.ok);
+  const offset = state.candidates.length;
+  const newCandidates = successful.map((item, index) => ({
+    id: `batch-${Date.now()}-${index}`,
+    title: item.title || item.source || `Reference ${offset + index + 1}`,
+    source: item.source || "Batch import",
+    url: item.url,
+    direction: document.querySelector("#reference-direction").value || "Premium Architecture Studio",
+    visual: ["visual-editorial", "visual-architecture", "visual-wellness", "visual-material"][index % 4],
+    image: item.preview,
+    tags: ["batch", "screenshot"],
+    note: "Кандидат добавлен пачкой URL и автоматически превращен в screenshot-preview.",
+    vote: "",
+    fromBatch: true,
+  }));
+
+  state.candidates.unshift(...newCandidates);
+  renderDiscover();
+  saveState();
+  return successful.length;
+}
+
 function renderReferences(filter = state.activeFilter) {
   state.activeFilter = filter;
   const visible = state.references.filter((item) => {
@@ -1007,6 +1043,41 @@ function bindEvents() {
   document.querySelector("#like-candidate").addEventListener("click", () => voteCandidate("like"));
   document.querySelector("#reject-candidate").addEventListener("click", () => voteCandidate("dislike"));
   document.querySelector("#load-candidates").addEventListener("click", loadMoreCandidates);
+  document.querySelector("#batch-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const status = document.querySelector("#batch-status");
+    const submit = document.querySelector("#batch-submit");
+    const urls = document
+      .querySelector("#batch-urls")
+      .value.split(/\s+/)
+      .map((url) => url.trim())
+      .filter(Boolean)
+      .slice(0, 20);
+
+    if (!urls.length) {
+      status.className = "form-status is-error";
+      status.textContent = "Вставьте хотя бы один URL.";
+      return;
+    }
+
+    status.className = "form-status is-working";
+    status.textContent = `Делаю screenshots: 0/${urls.length}`;
+    submit.disabled = true;
+
+    try {
+      const results = await screenshotBatch(urls);
+      const added = addBatchCandidates(results);
+      const failed = results.length - added;
+      status.className = failed ? "form-status is-error" : "form-status";
+      status.textContent = `Добавлено кандидатов: ${added}. Ошибок: ${failed}.`;
+      document.querySelector("#batch-urls").value = "";
+    } catch (error) {
+      status.className = "form-status is-error";
+      status.textContent = error.message;
+    } finally {
+      submit.disabled = false;
+    }
+  });
 
   document.querySelector("#reference-image").addEventListener("change", (event) => {
     const file = event.target.files[0];

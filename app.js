@@ -364,6 +364,7 @@ function createDefaultState() {
     activeFilter: "all",
     searchQuery: "",
     searchSources: ["behance", "dribbble", "pinterest", "awwwards"],
+    discoverAutoQuery: "",
   };
 }
 
@@ -910,6 +911,47 @@ function addSearchCandidates(results, query) {
   return successful.length;
 }
 
+async function runReferenceSearch({ automatic = false } = {}) {
+  const status = document.querySelector("#search-status");
+  const submit = document.querySelector("#search-submit");
+  if (!status || !submit || submit.disabled) return;
+
+  const query = buildSearchQuery();
+  const sources = state.searchSources?.length ? state.searchSources : ["behance", "dribbble", "pinterest", "awwwards"];
+
+  if (automatic && state.discoverAutoQuery === query && state.candidates.some((item) => item.fromSearch)) return;
+
+  if (!sources.length) {
+    status.className = "form-status is-error";
+    status.textContent = "Выберите хотя бы один источник.";
+    return;
+  }
+
+  status.className = "form-status is-working";
+  status.textContent = automatic
+    ? "Подбираю первые референсы и делаю screenshots. Это может занять до минуты."
+    : "Ищу еще сайты и делаю screenshots. Это может занять до минуты.";
+  submit.disabled = true;
+  state.searchQuery = query;
+  state.searchSources = sources;
+  if (automatic) state.discoverAutoQuery = query;
+
+  try {
+    const results = await searchReferences(query, 8, sources);
+    const added = addSearchCandidates(results, query);
+    const failed = results.length - added;
+    status.className = failed ? "form-status is-error" : "form-status";
+    status.textContent = `Добавлено в Discover: ${added}. Не удалось обработать: ${failed}.`;
+  } catch (error) {
+    if (automatic) state.discoverAutoQuery = "";
+    status.className = "form-status is-error";
+    status.textContent = error.message;
+  } finally {
+    submit.disabled = false;
+    saveState();
+  }
+}
+
 function addBatchCandidates(results) {
   const successful = results.filter((item) => item.ok);
   const offset = state.candidates.length;
@@ -1150,6 +1192,9 @@ function setStep(stepId) {
     agentCopyElement.textContent = agentCopy[stepId].copy;
   }
   renderStrategy();
+  if (stepId === "discover") {
+    window.setTimeout(() => runReferenceSearch({ automatic: true }), 0);
+  }
 }
 
 function updateProjectFromInputs() {
@@ -1361,38 +1406,7 @@ function bindEvents() {
 
   document.querySelector("#like-candidate").addEventListener("click", () => voteCandidate("like"));
   document.querySelector("#reject-candidate").addEventListener("click", () => voteCandidate("dislike"));
-  document.querySelector("#search-submit").addEventListener("click", async () => {
-    const status = document.querySelector("#search-status");
-    const submit = document.querySelector("#search-submit");
-    const query = buildSearchQuery();
-    const sources = state.searchSources?.length ? state.searchSources : ["behance", "dribbble", "pinterest", "awwwards"];
-
-    if (!sources.length) {
-      status.className = "form-status is-error";
-      status.textContent = "Выберите хотя бы один источник.";
-      return;
-    }
-
-    status.className = "form-status is-working";
-    status.textContent = "Ищу сайты и делаю screenshots. Это может занять до минуты.";
-    submit.disabled = true;
-    state.searchQuery = query;
-    state.searchSources = sources;
-
-    try {
-      const results = await searchReferences(query, 8, sources);
-      const added = addSearchCandidates(results, query);
-      const failed = results.length - added;
-      status.className = failed ? "form-status is-error" : "form-status";
-      status.textContent = `Добавлено в Discover: ${added}. Не удалось обработать: ${failed}.`;
-    } catch (error) {
-      status.className = "form-status is-error";
-      status.textContent = error.message;
-    } finally {
-      submit.disabled = false;
-      saveState();
-    }
-  });
+  document.querySelector("#search-submit").addEventListener("click", () => runReferenceSearch());
   document.querySelector("#batch-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     const status = document.querySelector("#batch-status");

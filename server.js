@@ -129,6 +129,27 @@ function stripSearchText(value = "") {
     .trim();
 }
 
+function compactSearchQuery(query, maxLength = 390) {
+  const cleaned = stripSearchText(query);
+  if (cleaned.length <= maxLength) return cleaned;
+
+  const required = [];
+  const optional = [];
+  cleaned.split(/\s+/).forEach((token) => {
+    if (!token) return;
+    if (token.startsWith("site:") || token.startsWith("-")) required.push(token);
+    else optional.push(token);
+  });
+
+  const output = [];
+  [...optional, ...required].forEach((token) => {
+    const next = [...output, token].join(" ");
+    if (next.length <= maxLength) output.push(token);
+  });
+
+  return output.join(" ");
+}
+
 const briefOptions = {
   task: [
     "Редизайн существующего сайта",
@@ -710,7 +731,7 @@ app.post("/api/search-references", async (req, res) => {
     const groupedResults = [];
     for (const source of selectedSources) {
       const sourceConfig = searchSources[source];
-      const sourceQuery = `${query} ${sourceConfig.queryHint}`;
+      const sourceQuery = compactSearchQuery(`${query} ${sourceConfig.queryHint}`);
       const results = await searchProvider(sourceQuery, perSourceCount, sourceConfig.domains, source, query);
       groupedResults.push(results.map((item) => ({ ...item, sourceRoute: sourceConfig.label, sourceId: source })));
     }

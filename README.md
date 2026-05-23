@@ -15,6 +15,7 @@
 - Финальная visual strategy, которая собирается из выбранных формулировок и оценок.
 - 3 concept routes.
 - Экспорт проекта в JSON и Markdown.
+- Prompt Pack для трех concept routes и negative prompt.
 
 ## Как открыть
 
@@ -54,5 +55,4 @@ cd /home/deploy/noway
 
 - Реальный сбор ссылок и скриншотов референсов.
 - Экспорт moodboard в Notion, Airtable или Figma/FigJam.
-- Генерация промптов под каждый concept route.
 - Создание первых homepage-концептов.

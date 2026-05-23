@@ -443,6 +443,88 @@ function renderConcepts() {
     .join("");
 }
 
+function getPromptPack() {
+  const tone = listOrFallback(state.selections.tone.slice(0, 8), "premium, precise, editorial");
+  const avoid = listOrFallback(state.selections.avoid.slice(0, 10), "generic stock imagery, SaaS layout, cheap icons");
+  const audience = state.project.audience || "premium clients";
+  const goal = state.project.goal || "create trust and premium visual impression";
+  const liked = state.references
+    .filter((item) => item.rating === "like")
+    .map((item) => item.title)
+    .slice(0, 6);
+  const likedLine = listOrFallback(liked, "large photography, restrained typography, material detail, architectural composition");
+
+  return [
+    {
+      title: "Concept A: Architectural Editorial",
+      text: [
+        `Create a premium homepage visual concept for ${state.project.title || "a premium design-led company"}.`,
+        `Audience: ${audience}.`,
+        `Goal: ${goal}.`,
+        "Direction: Architectural Editorial.",
+        `Visual tone: ${tone}.`,
+        `Use: large full-bleed project photography, editorial grid, restrained serif headline, precise spacing, quiet navigation, portfolio-first composition.`,
+        `Take inspiration from liked references: ${likedLine}.`,
+        "Homepage sections: hero with one strong project image, short positioning statement, selected projects, process, materials/engineering proof, CTA.",
+        "Output: high-end website mockup, desktop viewport, polished art direction, realistic layout, no placeholder lorem ipsum.",
+      ].join("\n"),
+    },
+    {
+      title: "Concept B: Natural Luxury Wellness",
+      text: [
+        `Create a premium visual concept for ${state.project.title || "a wellness architecture brand"}.`,
+        `Audience: ${audience}.`,
+        `Goal: ${goal}.`,
+        "Direction: Natural Luxury Wellness.",
+        `Visual tone: ${tone}.`,
+        "Use: warm stone, wood, water, steam, soft daylight, tactile material close-ups, quiet luxury hospitality mood.",
+        `Take inspiration from liked references: ${likedLine}.`,
+        "Homepage sections: immersive wellness hero, material atmosphere, project gallery, service scope, sensory details, consultation CTA.",
+        "Output: refined website mockup, warm premium atmosphere, strong photography, elegant typography, no spa cliches.",
+      ].join("\n"),
+    },
+    {
+      title: "Concept C: Investor-Grade Hospitality",
+      text: [
+        `Create a premium presentation-grade homepage for ${state.project.title || "a complex project delivery company"}.`,
+        `Audience: ${audience}.`,
+        `Goal: ${goal}.`,
+        "Direction: Investor-Grade Hospitality.",
+        `Visual tone: ${tone}.`,
+        "Use: confident grid, project scale, calm data blocks, engineering credibility, hospitality-level imagery, strict navigation.",
+        `Take inspiration from liked references: ${likedLine}.`,
+        "Homepage sections: positioning hero, proof of complex delivery, flagship projects, process timeline, partner/developer trust signals, CTA.",
+        "Output: premium website mockup for investors and developers, polished hierarchy, serious but not corporate.",
+      ].join("\n"),
+    },
+    {
+      title: "Negative Prompt",
+      text: [
+        `Avoid: ${avoid}.`,
+        "No generic SaaS cards, no neon gradients, no smiling stock people, no cheap 3D icons, no wellness cliches such as stones, bamboo, orchids, candles, leaf icons or water-drop icons.",
+        "Avoid overly empty minimalism, fake luxury gold/marble excess, generic construction company layout, corporate template feel, illegible small text, overlapping UI, and decorative visuals without product relevance.",
+      ].join("\n"),
+    },
+  ];
+}
+
+function renderPromptPack() {
+  const promptPack = getPromptPack();
+  document.querySelector("#prompt-grid").innerHTML = promptPack
+    .map(
+      (prompt, index) => `
+        <article class="prompt-card">
+          <header>
+            <h4>${prompt.title}</h4>
+            <button class="mini-button" type="button" data-copy-prompt="${index}">Копировать</button>
+          </header>
+          <pre>${escapeHtml(prompt.text)}</pre>
+        </article>
+      `,
+    )
+    .join("");
+}
+
 function renderStrategy() {
   const likes = state.references.filter((item) => item.rating === "like");
   const dislikedReasons = state.references
@@ -473,6 +555,7 @@ function renderStrategy() {
     [...new Set([...state.selections.avoid, ...dislikedReasons])].slice(0, 10),
     "Ограничения пока не выбраны.",
   );
+  renderPromptPack();
 }
 
 function setStep(stepId) {
@@ -525,6 +608,7 @@ function getProjectExport() {
       avoid: document.querySelector("#strategy-avoid").textContent,
     },
     concepts,
+    prompts: getPromptPack(),
   };
 }
 
@@ -575,6 +659,9 @@ function buildMarkdown() {
     `UI: ${document.querySelector("#strategy-ui").textContent}`,
     `Avoid: ${document.querySelector("#strategy-avoid").textContent}`,
     "",
+    "## Prompt Pack",
+    "",
+    ...getPromptPack().flatMap((prompt) => [`### ${prompt.title}`, "", prompt.text, ""]),
   ].join("\n");
 }
 
@@ -642,6 +729,15 @@ function bindEvents() {
       target.classList.add("is-active");
       renderReferences(target.dataset.filter);
       saveState();
+    }
+
+    if (target.matches("[data-copy-prompt]")) {
+      const prompt = getPromptPack()[Number(target.dataset.copyPrompt)];
+      navigator.clipboard.writeText(prompt.text);
+      const toast = document.querySelector("#toast");
+      toast.textContent = "Промпт скопирован";
+      toast.classList.add("is-visible");
+      window.setTimeout(() => toast.classList.remove("is-visible"), 1600);
     }
   });
 
@@ -727,6 +823,17 @@ function bindEvents() {
   document.querySelector("#export-markdown").addEventListener("click", () => {
     downloadText("visual-strategy.md", buildMarkdown(), "text/markdown");
   });
+
+  document.querySelector("#copy-all-prompts").addEventListener("click", async () => {
+    const allPrompts = getPromptPack()
+      .map((prompt) => `${prompt.title}\n\n${prompt.text}`)
+      .join("\n\n---\n\n");
+    await navigator.clipboard.writeText(allPrompts);
+    const toast = document.querySelector("#toast");
+    toast.textContent = "Prompt Pack скопирован";
+    toast.classList.add("is-visible");
+    window.setTimeout(() => toast.classList.remove("is-visible"), 1600);
+  });
 }
 
 function renderAll() {
@@ -738,6 +845,7 @@ function renderAll() {
   renderReferences();
   renderConcepts();
   renderStrategy();
+  renderPromptPack();
 }
 
 renderAll();

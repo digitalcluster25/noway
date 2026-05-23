@@ -511,6 +511,11 @@ function isLowQualityReference(item, sourceId) {
     "portfolio hosting",
     "sharing your portfolio",
     "where do you think",
+    "information architecture",
+    "user persona",
+    "user journey",
+    "ux case study",
+    "ui ux designer",
   ];
 
   return (
@@ -526,13 +531,16 @@ function rankReferenceResults(results, count, sourceId, relevanceQuery = "") {
     .filter((item) => isAcceptedSourceReference(item, sourceId) && !isLowQualityReference(item, sourceId))
     .map((item) => {
       const topicRelevance = scoreTopicRelevance(item, topicTokens);
+      const minimumTopicHits = topicTokens.length >= 6 ? 2 : 1;
       return {
         ...item,
         topicHits: topicRelevance.hits,
+        minimumTopicHits,
         referenceScore: scoreReferenceResult(item) + topicRelevance.score - (topicTokens.length >= 3 && !topicRelevance.hits ? 0.65 : 0),
       };
     })
     .sort((a, b) => b.referenceScore - a.referenceScore)
+    .filter((item) => !topicTokens.length || topicTokens.length < 3 || item.topicHits >= item.minimumTopicHits)
     .filter((item) => item.referenceScore > -0.75)
     .slice(0, count);
 }

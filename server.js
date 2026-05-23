@@ -12,6 +12,8 @@ const screenshotDir = path.join(publicDir, "generated", "screenshots");
 const port = Number(process.env.PORT || 3000);
 const braveSearchApiKey = process.env.BRAVE_SEARCH_API_KEY || "";
 const tavilyApiKey = process.env.TAVILY_API_KEY || "";
+const openrouterApiKey = process.env.OPENROUTER_API_KEY || "";
+const openrouterBriefModel = process.env.OPENROUTER_BRIEF_MODEL || "openrouter/free";
 
 const searchSources = {
   behance: { label: "Behance", domains: ["behance.net"] },
@@ -104,6 +106,139 @@ function stripSearchText(value = "") {
     .replace(/<[^>]*>/g, "")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+const briefOptions = {
+  task: [
+    "Редизайн существующего сайта",
+    "Поднять визуальный уровень",
+    "Имиджевый сайт для доверия",
+    "Портфолио высокого уровня",
+    "Конкурировать с архитектурными студиями",
+    "Заменить PDF-презентацию",
+  ],
+  effect: [
+    "У них есть вкус",
+    "Это уровень архитектурной студии",
+    "Им можно доверить дорогой объект",
+    "Они понимают материалы и атмосферу",
+    "Это international premium level",
+    "Они сильны и в дизайне, и в инженерии",
+  ],
+  tone: [
+    "Архитектурный",
+    "Дорогой минимализм",
+    "Спокойная премиальность",
+    "Журнальный / editorial",
+    "Галерейный",
+    "Contemporary hospitality",
+    "Камень, дерево, вода",
+    "Материальный / tactile",
+    "Natural luxury",
+    "Инженерно-точный",
+    "Тихая уверенность",
+    "Пространство как искусство",
+    "Японская сдержанность",
+    "Светлый воздушный",
+    "Сдержанный статус",
+  ],
+  avoid: [
+    "Шаблонный SaaS-вид",
+    "Банальные wellness-иконки",
+    "Стоковые улыбающиеся люди",
+    "Кислотные цвета",
+    "Слишком пустой минимализм",
+    "Дешевые 3D-иконки",
+    "Спа-клише",
+    "Избыточный luxury с золотом",
+  ],
+};
+
+function normalizeBriefArray(items, allowed) {
+  if (!Array.isArray(items)) return [];
+  return [...new Set(items.filter((item) => allowed.includes(item)))];
+}
+
+function extractJsonObject(text) {
+  const cleaned = String(text || "").replace(/```json|```/g, "").trim();
+  const start = cleaned.indexOf("{");
+  const end = cleaned.lastIndexOf("}");
+  if (start === -1 || end === -1 || end <= start) {
+    throw new Error("Модель не вернула JSON");
+  }
+  return JSON.parse(cleaned.slice(start, end + 1));
+}
+
+async function createBriefFromWish(wish) {
+  if (!openrouterApiKey) {
+    throw new Error("OPENROUTER_API_KEY не настроен на сервере");
+  }
+
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${openrouterApiKey}`,
+      "Content-Type": "application/json",
+      "HTTP-Referer": "https://noway.spaces.community",
+      "X-Title": "Noway Art Direction Pipeline",
+    },
+    body: JSON.stringify({
+      model: openrouterBriefModel,
+      messages: [
+        {
+          role: "system",
+          content: [
+            "You are a senior art-director briefing assistant.",
+            "Convert the user's rough request into a concise website art-direction brief.",
+            "Return only valid JSON. Use Russian for all text fields.",
+            "For task/effect/tone/avoid, choose only exact values from the provided option lists.",
+            "Do not invent a URL. If no URL is present, return an empty string.",
+          ].join(" "),
+        },
+        {
+          role: "user",
+          content: JSON.stringify({
+            wish,
+            options: briefOptions,
+            output_shape: {
+              title: "short project title",
+              url: "optional URL",
+              audience: "target audience",
+              goal: "main design/business goal",
+              task: ["exact option"],
+              effect: ["exact option"],
+              tone: ["exact option"],
+              avoid: ["exact option"],
+              questions: ["optional clarification question"],
+            },
+          }),
+        },
+      ],
+      temperature: 0.2,
+      response_format: {
+        type: "json_object",
+      },
+    }),
+  });
+  const result = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(result?.error?.message || result?.message || "OpenRouter не ответил");
+  }
+
+  const content = result?.choices?.[0]?.message?.content;
+  const parsed = typeof content === "string" ? extractJsonObject(content) : content;
+  return {
+    title: stripSearchText(parsed?.title),
+    url: stripSearchText(parsed?.url),
+    audience: stripSearchText(parsed?.audience),
+    goal: stripSearchText(parsed?.goal),
+    task: normalizeBriefArray(parsed?.task, briefOptions.task),
+    effect: normalizeBriefArray(parsed?.effect, briefOptions.effect),
+    tone: normalizeBriefArray(parsed?.tone, briefOptions.tone),
+    avoid: normalizeBriefArray(parsed?.avoid, briefOptions.avoid),
+    questions: Array.isArray(parsed?.questions) ? parsed.questions.map(stripSearchText).filter(Boolean).slice(0, 3) : [],
+  };
 }
 
 function inferDesignTags(text) {
@@ -336,6 +471,18 @@ app.post("/api/screenshot-batch", async (req, res) => {
   }
 
   res.json({ results });
+});
+
+app.post("/api/brief-from-wish", async (req, res) => {
+  try {
+    const wish = stripSearchText(req.body?.wish);
+    if (!wish || wish.length < 10) {
+      throw new Error("Опишите задачу чуть подробнее");
+    }
+    res.json(await createBriefFromWish(wish));
+  } catch (error) {
+    res.status(400).json({ error: error.message || "Не удалось собрать бриф" });
+  }
 });
 
 app.post("/api/search-references", async (req, res) => {

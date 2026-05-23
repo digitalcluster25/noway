@@ -1,4 +1,4 @@
-const storageKey = "noway-art-direction-project-v4";
+const storageKey = "noway-art-direction-project-v5";
 
 const hwsImages = {
   pool: "assets/hws-spa-pool.png",
@@ -65,35 +65,10 @@ const chipData = {
 };
 
 const defaultSelections = {
-  task: [
-    "Редизайн существующего сайта",
-    "Поднять визуальный уровень",
-    "Имиджевый сайт для доверия",
-    "Конкурировать с архитектурными студиями",
-  ],
-  effect: [
-    "У них есть вкус",
-    "Это уровень архитектурной студии",
-    "Им можно доверить дорогой объект",
-    "Они понимают материалы и атмосферу",
-  ],
-  tone: [
-    "Архитектурный",
-    "Дорогой минимализм",
-    "Спокойная премиальность",
-    "Contemporary hospitality",
-    "Камень, дерево, вода",
-    "Материальный / tactile",
-    "Natural luxury",
-    "Тихая уверенность",
-  ],
-  avoid: [
-    "Шаблонный SaaS-вид",
-    "Банальные wellness-иконки",
-    "Стоковые улыбающиеся люди",
-    "Кислотные цвета",
-    "Слишком пустой минимализм",
-  ],
+  task: [],
+  effect: [],
+  tone: [],
+  avoid: [],
 };
 
 const directions = [
@@ -350,10 +325,10 @@ const state = loadState();
 function createDefaultState() {
   return {
     project: {
-      title: "Home Wood Spa redesign",
-      url: "https://homewoodspa.com/",
-      audience: "Девелоперы, инвесторы, архитекторы",
-      goal: "Создать впечатление: эти ребята знают толк в дизайне, все будет на уровне",
+      title: "",
+      url: "",
+      audience: "",
+      goal: "",
       wish: "",
     },
     selections: structuredClone(defaultSelections),
@@ -415,94 +390,62 @@ function saveState() {
   renderStrategy();
 }
 
-function includesAny(text, words) {
-  return words.some((word) => text.includes(word));
+async function createBriefFromWish(wish) {
+  const response = await fetch("/api/brief-from-wish", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ wish, options: chipData }),
+  });
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.error || "Не удалось собрать бриф");
+  }
+  return result;
 }
 
-function inferWishBrief(wish) {
-  const text = wish.toLowerCase();
-  const urlMatch = wish.match(/https?:\/\/[^\s]+/i);
-  const selections = {
-    task: new Set(["Поднять визуальный уровень"]),
-    effect: new Set(),
-    tone: new Set(),
-    avoid: new Set(),
-  };
-
-  if (includesAny(text, ["редизайн", "передел", "обнов"])) selections.task.add("Редизайн существующего сайта");
-  if (includesAny(text, ["довер", "имидж", "репутац"])) selections.task.add("Имиджевый сайт для доверия");
-  if (includesAny(text, ["портфолио", "кейсы", "проекты"])) selections.task.add("Портфолио высокого уровня");
-  if (includesAny(text, ["презентац", "pdf", "питч"])) selections.task.add("Заменить PDF-презентацию");
-  if (includesAny(text, ["архитект", "студ"])) selections.task.add("Конкурировать с архитектурными студиями");
-
-  if (includesAny(text, ["инвест", "девелоп", "дорог", "премиум", "premium"])) {
-    selections.effect.add("Им можно доверить дорогой объект");
-    selections.effect.add("Это international premium level");
-  }
-  if (includesAny(text, ["вкус", "дизайн", "уровень"])) selections.effect.add("У них есть вкус");
-  if (includesAny(text, ["архитект"])) selections.effect.add("Это уровень архитектурной студии");
-  if (includesAny(text, ["материал", "дерево", "камень", "вода", "спа", "spa"])) {
-    selections.effect.add("Они понимают материалы и атмосферу");
-  }
-  if (includesAny(text, ["инженер", "строит", "реализац", "комплекс"])) selections.effect.add("Они сильны и в дизайне, и в инженерии");
-
-  if (includesAny(text, ["архитект"])) selections.tone.add("Архитектурный");
-  if (includesAny(text, ["минимал", "дорог", "premium", "премиум"])) {
-    selections.tone.add("Дорогой минимализм");
-    selections.tone.add("Спокойная премиальность");
-  }
-  if (includesAny(text, ["журнал", "editorial", "редакц"])) selections.tone.add("Журнальный / editorial");
-  if (includesAny(text, ["галере", "портфолио", "проекты"])) selections.tone.add("Галерейный");
-  if (includesAny(text, ["hotel", "hospitality", "отель", "гостин", "спа", "spa"])) selections.tone.add("Contemporary hospitality");
-  if (includesAny(text, ["камень", "дерево", "вода", "материал", "тактил"])) {
-    selections.tone.add("Камень, дерево, вода");
-    selections.tone.add("Материальный / tactile");
-    selections.tone.add("Natural luxury");
-  }
-  if (includesAny(text, ["инженер", "точн"])) selections.tone.add("Инженерно-точный");
-  selections.tone.add("Тихая уверенность");
-
-  if (includesAny(text, ["saas", "сервис", "шаблон"])) selections.avoid.add("Шаблонный SaaS-вид");
-  if (includesAny(text, ["икон", "wellness"])) selections.avoid.add("Банальные wellness-иконки");
-  if (includesAny(text, ["сток", "улыба"])) selections.avoid.add("Стоковые улыбающиеся люди");
-  if (includesAny(text, ["кислот", "ярк", "неон"])) selections.avoid.add("Кислотные цвета");
-  if (includesAny(text, ["пуст", "чрезмерный минимализм"])) selections.avoid.add("Слишком пустой минимализм");
-  if (includesAny(text, ["3d", "3д"])) selections.avoid.add("Дешевые 3D-иконки");
-  if (includesAny(text, ["клише", "спа"])) selections.avoid.add("Спа-клише");
-  if (includesAny(text, ["золото", "мрамор"])) selections.avoid.add("Избыточный luxury с золотом");
-
-  return {
-    url: urlMatch?.[0]?.replace(/[),.]+$/, "") || "",
-    title: includesAny(text, ["home wood", "hws"]) ? "Home Wood Spa redesign" : "Новый визуальный концепт",
-    audience: includesAny(text, ["инвест", "девелоп", "архитект"])
-      ? "Девелоперы, инвесторы, архитекторы"
-      : includesAny(text, ["клиент", "покупател"])
-        ? "Потенциальные клиенты и партнеры"
-        : "Премиальная аудитория и принимающие решения",
-    goal: wish.length > 140 ? wish.slice(0, 137).trim() + "..." : wish,
-    selections: Object.fromEntries(Object.entries(selections).map(([key, value]) => [key, [...value]])),
-  };
-}
-
-function applyWishBrief() {
+async function applyWishBrief() {
   const wish = document.querySelector("#project-wish").value.trim();
-  if (!wish) return;
-  const brief = inferWishBrief(wish);
-  state.project.wish = wish;
-  state.project.title = brief.title;
-  if (brief.url) state.project.url = brief.url;
-  state.project.audience = brief.audience;
-  state.project.goal = brief.goal;
-  state.selections = {
-    task: brief.selections.task.length ? brief.selections.task : [...defaultSelections.task],
-    effect: brief.selections.effect.length ? brief.selections.effect : [...defaultSelections.effect],
-    tone: brief.selections.tone.length ? brief.selections.tone : [...defaultSelections.tone],
-    avoid: brief.selections.avoid.length ? brief.selections.avoid : [...defaultSelections.avoid],
-  };
-  renderProjectFields();
-  renderChips();
-  saveState();
-  setStep("brief");
+  const status = document.querySelector("#wish-status");
+  const submit = document.querySelector("#wish-submit");
+  if (!wish) {
+    status.className = "form-status is-error";
+    status.textContent = "Опишите, что нужно получить.";
+    return;
+  }
+
+  status.className = "form-status is-working";
+  status.textContent = "Собираю бриф...";
+  submit.disabled = true;
+
+  try {
+    const brief = await createBriefFromWish(wish);
+    state.project = {
+      wish,
+      title: brief.title || "",
+      url: brief.url || "",
+      audience: brief.audience || "",
+      goal: brief.goal || "",
+    };
+    state.selections = {
+      task: brief.task || [],
+      effect: brief.effect || [],
+      tone: brief.tone || [],
+      avoid: brief.avoid || [],
+    };
+    state.references = [];
+    state.candidates = [];
+    renderProjectFields();
+    renderChips();
+    saveState();
+    status.className = "form-status";
+    status.textContent = "Бриф собран.";
+    setStep("brief");
+  } catch (error) {
+    status.className = "form-status is-error";
+    status.textContent = error.message;
+  } finally {
+    submit.disabled = false;
+  }
 }
 
 function escapeHtml(value) {
@@ -631,12 +574,15 @@ function renderProjectFields() {
 }
 
 function renderSummary() {
+  const summary = document.querySelector(".brief-summary");
+  if (summary) summary.hidden = !state.project.title && !state.project.audience && !state.project.goal;
   document.querySelector("#summary-project").textContent = state.project.title || "Новый проект";
   document.querySelector("#summary-audience").textContent = state.project.audience || "Аудитория не задана";
   document.querySelector("#summary-positioning").textContent = buildPositioning();
 }
 
 function buildPositioning() {
+  if (!state.selections.tone.length) return "Позиционирование не задано";
   const hasArchitecture = state.selections.tone.some((item) => item.includes("Архитектур"));
   const hasWellness = state.selections.tone.some((item) => item.includes("hospitality") || item.includes("Natural"));
   if (hasArchitecture && hasWellness) return "Premium architectural wellness";
@@ -1126,6 +1072,8 @@ function setStep(stepId) {
   document.querySelectorAll(".step").forEach((step) => {
     step.classList.toggle("is-active", step.dataset.step === stepId);
   });
+  const summary = document.querySelector(".brief-summary");
+  if (summary) summary.hidden = stepId === "wishes" || (!state.project.title && !state.project.audience && !state.project.goal);
 
   const agentTitle = document.querySelector("#agent-title");
   const agentCopyElement = document.querySelector("#agent-copy");

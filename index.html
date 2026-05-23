@@ -48,11 +48,11 @@
           <p class="eyebrow">Сводка проекта</p>
           <div class="summary-item">
             <span>Проект</span>
-            <strong id="summary-project">Home Wood Spa redesign</strong>
+            <strong id="summary-project">Новый проект</strong>
           </div>
           <div class="summary-item">
             <span>Аудитория</span>
-            <strong id="summary-audience">Девелоперы, инвесторы, архитекторы</strong>
+            <strong id="summary-audience">Аудитория не задана</strong>
           </div>
           <div class="summary-item">
             <span>Уровень</span>
@@ -79,6 +79,7 @@
               placeholder="Например: нужен редизайн сайта архитектурной компании, чтобы он выглядел дороже, убедительнее для инвесторов и без шаблонного SaaS-вида"
             ></textarea>
             <button class="primary-action" id="wish-submit" type="button">Собрать бриф</button>
+            <p class="form-status" id="wish-status" role="status" aria-live="polite"></p>
           </article>
 
           <section class="agent-note inline-note" aria-live="polite">
@@ -107,19 +108,19 @@
               <div class="form-grid">
                 <div>
                   <label for="project-title">Название проекта</label>
-                  <input id="project-title" value="Home Wood Spa redesign" />
+                  <input id="project-title" />
                 </div>
                 <div>
                   <label for="project-url">Сайт или объект редизайна</label>
-                  <input id="project-url" value="https://homewoodspa.com/" />
+                  <input id="project-url" />
                 </div>
                 <div>
                   <label for="project-audience">Аудитория</label>
-                  <input id="project-audience" value="Девелоперы, инвесторы, архитекторы" />
+                  <input id="project-audience" />
                 </div>
                 <div>
                   <label for="project-goal">Главная задача</label>
-                  <input id="project-goal" value="Создать впечатление: эти ребята знают толк в дизайне, все будет на уровне" />
+                  <input id="project-goal" />
                 </div>
               </div>
               <p class="hint">

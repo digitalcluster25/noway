@@ -51,12 +51,15 @@ docker compose up -d --build
 Контейнер использует Node/Express и Playwright: отдает frontend и делает screenshots URL.
 Наружный HTTPS и домен обслуживает Traefik через Docker labels.
 
-Для полноценного Search Agent нужно добавить переменную окружения:
+Для полноценного MVP нужно добавить переменные окружения:
 
 ```bash
+OPENROUTER_API_KEY=...
+OPENROUTER_BRIEF_MODEL=openrouter/free
 TAVILY_API_KEY=...
 ```
 
+`openrouter/free` используется как бесплатный роутер для проверки концепта бриф-агента.
 `BRAVE_SEARCH_API_KEY` можно оставить как запасной провайдер, если Tavily-ключ не задан.
 
 Обновление после нового push:

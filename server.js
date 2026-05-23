@@ -150,6 +150,40 @@ function compactSearchQuery(query, maxLength = 390) {
   return output.join(" ");
 }
 
+function buildBehanceSearchPhrase(query) {
+  const genericTokens = new Set([
+    "reference",
+    "references",
+    "case",
+    "study",
+    "design",
+    "website",
+    "web",
+    "ui",
+    "ux",
+    "homepage",
+    "landing",
+    "page",
+    "premium",
+    "minimal",
+    "visual",
+    "concept",
+    "концепт",
+    "сайт",
+    "сайта",
+    "дизайн",
+    "референс",
+    "референсы",
+  ]);
+  const tokens = stripSearchText(query)
+    .replace(/-\S+/g, " ")
+    .toLowerCase()
+    .match(/[\p{L}\p{N}]{4,}/gu) || [];
+  const meaningful = [...new Set(tokens)].filter((token) => !genericTokens.has(token)).slice(0, 6);
+  const phrase = meaningful.length ? meaningful.join(" ") : "website landing page";
+  return `${phrase} website`;
+}
+
 const briefOptions = {
   task: [
     "Редизайн существующего сайта",
@@ -675,7 +709,48 @@ async function tavilySearch(query, count, domains = [], sourceId, relevanceQuery
     .filter((item) => item.url), count, sourceId, relevanceQuery);
 }
 
+async function behanceDirectSearch(query, count, relevanceQuery = query) {
+  let browser;
+  const phrase = buildBehanceSearchPhrase(relevanceQuery || query);
+  const searchUrl = `https://www.behance.net/search/projects?search=${encodeURIComponent(phrase)}`;
+
+  browser = await chromium.launch({
+    headless: true,
+    args: ["--disable-dev-shm-usage"],
+  });
+
+  try {
+    const page = await browser.newPage({
+      viewport: { width: 1440, height: 1100 },
+      deviceScaleFactor: 1,
+    });
+    await page.goto(searchUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
+    await page.waitForLoadState("networkidle", { timeout: 8000 }).catch(() => {});
+    await page.waitForTimeout(1200);
+
+    const results = await page.evaluate(() => {
+      const anchors = [...document.querySelectorAll('a[href*="/gallery/"]')];
+      return anchors.map((anchor) => {
+        const url = new URL(anchor.getAttribute("href"), window.location.origin).toString();
+        const card = anchor.closest("li, article, div") || anchor;
+        const title = (anchor.getAttribute("title") || anchor.textContent || card.textContent || "").trim();
+        return {
+          title,
+          url,
+          description: card.textContent || title,
+          score: 0.5,
+        };
+      });
+    });
+
+    return rankReferenceResults(results, count, "behance", relevanceQuery);
+  } finally {
+    if (browser) await browser.close();
+  }
+}
+
 async function searchProvider(query, count, domains = [], sourceId, relevanceQuery = query) {
+  if (sourceId === "behance") return behanceDirectSearch(query, count, relevanceQuery);
   if (tavilyApiKey) return tavilySearch(query, count, domains, sourceId, relevanceQuery);
   if (!braveSearchApiKey) {
     throw new Error("TAVILY_API_KEY не настроен на сервере");

@@ -123,6 +123,8 @@ function scoreReferenceResult(item) {
     "facebook.com",
     "pinterest.com",
     "youtube.com",
+    "tiktok.com",
+    "reddit.com",
     "x.com",
     "twitter.com",
     "themeforest.net",
@@ -195,7 +197,18 @@ function isLowQualityReference(item) {
     "templatemag.com",
   ];
   const blockedUrlParts = ["/template", "/templates", "/theme", "/themes", "/download"];
-  const blockedTextParts = ["website builder", "portfolio template", "wordpress theme", "premium template", "free template"];
+  const blockedTextParts = [
+    "website builder",
+    "portfolio template",
+    "wordpress theme",
+    "premium template",
+    "free template",
+    "free websites",
+    "portfolio online",
+    "portfolio hosting",
+    "sharing your portfolio",
+    "where do you think",
+  ];
 
   return (
     blockedDomains.some((domain) => hostname === domain || hostname.endsWith(`.${domain}`)) ||

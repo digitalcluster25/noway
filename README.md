@@ -55,11 +55,12 @@ docker compose up -d --build
 
 ```bash
 OPENROUTER_API_KEY=...
-OPENROUTER_BRIEF_MODEL=openrouter/free
+OPENROUTER_BRIEF_MODEL=nvidia/nemotron-nano-9b-v2:free
+OPENROUTER_FALLBACK_MODEL=openrouter/free
 TAVILY_API_KEY=...
 ```
 
-`openrouter/free` используется как бесплатный роутер для проверки концепта бриф-агента.
+`nvidia/nemotron-nano-9b-v2:free` используется как конкретная бесплатная модель бриф-агента. `openrouter/free` оставлен как fallback.
 `BRAVE_SEARCH_API_KEY` можно оставить как запасной провайдер, если Tavily-ключ не задан.
 
 Обновление после нового push:

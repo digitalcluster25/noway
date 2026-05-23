@@ -13,7 +13,8 @@ const port = Number(process.env.PORT || 3000);
 const braveSearchApiKey = process.env.BRAVE_SEARCH_API_KEY || "";
 const tavilyApiKey = process.env.TAVILY_API_KEY || "";
 const openrouterApiKey = process.env.OPENROUTER_API_KEY || "";
-const openrouterBriefModel = process.env.OPENROUTER_BRIEF_MODEL || "openrouter/free";
+const openrouterBriefModel = process.env.OPENROUTER_BRIEF_MODEL || "nvidia/nemotron-nano-9b-v2:free";
+const openrouterFallbackModel = process.env.OPENROUTER_FALLBACK_MODEL || "openrouter/free";
 
 const searchSources = {
   behance: { label: "Behance", domains: ["behance.net"] },
@@ -169,7 +170,7 @@ function extractJsonObject(text) {
   return JSON.parse(cleaned.slice(start, end + 1));
 }
 
-async function createBriefFromWish(wish) {
+async function requestBriefFromOpenRouter(wish, model) {
   if (!openrouterApiKey) {
     throw new Error("OPENROUTER_API_KEY не настроен на сервере");
   }
@@ -183,7 +184,7 @@ async function createBriefFromWish(wish) {
       "X-Title": "Noway Art Direction Pipeline",
     },
     body: JSON.stringify({
-      model: openrouterBriefModel,
+      model,
       messages: [
         {
           role: "system",
@@ -262,6 +263,15 @@ async function createBriefFromWish(wish) {
     avoid: normalizeBriefArray(parsed?.avoid, briefOptions.avoid),
     questions: Array.isArray(parsed?.questions) ? parsed.questions.map(stripSearchText).filter(Boolean).slice(0, 3) : [],
   };
+}
+
+async function createBriefFromWish(wish) {
+  try {
+    return await requestBriefFromOpenRouter(wish, openrouterBriefModel);
+  } catch (error) {
+    if (!openrouterFallbackModel || openrouterFallbackModel === openrouterBriefModel) throw error;
+    return requestBriefFromOpenRouter(wish, openrouterFallbackModel);
+  }
 }
 
 function inferDesignTags(text) {

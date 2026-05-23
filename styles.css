@@ -118,16 +118,18 @@ h3 {
 }
 
 .steps {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
 .step {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 12px;
+  gap: 8px;
+  flex: 1 1 140px;
+  min-width: 0;
+  padding: 10px;
   color: var(--muted);
   text-align: left;
   background: transparent;
@@ -136,13 +138,22 @@ h3 {
 }
 
 .step span {
+  flex: 0 0 auto;
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   border: 1px solid var(--line);
   border-radius: 50%;
   font-size: 11px;
+}
+
+.step strong {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .step.is-active {
@@ -668,6 +679,10 @@ select {
   border-top: 1px solid var(--line);
 }
 
+.batch-form.is-disabled {
+  display: none;
+}
+
 textarea {
   width: 100%;
   resize: vertical;
@@ -1008,7 +1023,12 @@ dd {
   }
 
   .steps {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .step {
+    flex: 0 0 auto;
   }
 
   .brief-summary {

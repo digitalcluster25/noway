@@ -570,6 +570,7 @@ function voteCandidate(vote) {
   candidate.vote = vote;
 
   if (vote === "like" && !state.references.some((item) => item.id === `ref-${candidate.id}`)) {
+    const referenceImageValue = candidate.image || referenceImage(candidate);
     state.references.unshift({
       id: `ref-${candidate.id}`,
       title: candidate.title,
@@ -577,7 +578,7 @@ function voteCandidate(vote) {
       url: candidate.url,
       direction: candidate.direction,
       visual: candidate.visual,
-      image: candidate.image,
+      image: referenceImageValue,
       tags: candidate.tags,
       note: candidate.note,
       rating: "like",
@@ -587,7 +588,10 @@ function voteCandidate(vote) {
   }
 
   renderDiscover();
-  renderReferences();
+  renderReferences("discover");
+  document.querySelectorAll(".filter").forEach((filter) => {
+    filter.classList.toggle("is-active", filter.dataset.filter === "discover");
+  });
   saveState();
 }
 

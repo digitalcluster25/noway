@@ -116,12 +116,57 @@ function inferDesignTags(text) {
 
 function scoreReferenceResult(item) {
   const url = item.url.toLowerCase();
+  const hostname = new URL(item.url).hostname.replace(/^www\./, "");
   const text = `${item.title} ${item.description}`.toLowerCase();
-  const badUrlParts = ["/blog", "/article", "/articles", "/news", "/magazine", "/websites/", "/inspiration", "/best-", "/top-"];
-  const badTextParts = ["best ", "top ", "inspiration", "examples", "collection", "curated", "article", "blog", "awards"];
+  const badDomains = [
+    "instagram.com",
+    "facebook.com",
+    "pinterest.com",
+    "youtube.com",
+    "x.com",
+    "twitter.com",
+    "themeforest.net",
+    "templatemag.com",
+    "webflow.com",
+    "wix.com",
+    "squarespace.com",
+  ];
+  const badUrlParts = [
+    "/blog",
+    "/article",
+    "/articles",
+    "/news",
+    "/magazine",
+    "/websites/",
+    "/inspiration",
+    "/best-",
+    "/top-",
+    "/template",
+    "/templates",
+    "/theme",
+    "/themes",
+  ];
+  const badTextParts = [
+    "best ",
+    "top ",
+    "inspiration",
+    "examples",
+    "collection",
+    "curated",
+    "article",
+    "blog",
+    "awards",
+    "template",
+    "theme",
+    "builder",
+    "wordpress",
+    "download",
+    "free ",
+  ];
   const goodTextParts = ["studio", "portfolio", "projects", "work", "homepage", "architecture", "interior", "hospitality", "brand"];
   let score = Number(item.score || 0);
 
+  if (badDomains.some((domain) => hostname === domain || hostname.endsWith(`.${domain}`))) score -= 1.5;
   badUrlParts.forEach((part) => {
     if (url.includes(part)) score -= 0.35;
   });
@@ -139,6 +184,7 @@ function rankReferenceResults(results, count) {
   return results
     .map((item) => ({ ...item, referenceScore: scoreReferenceResult(item) }))
     .sort((a, b) => b.referenceScore - a.referenceScore)
+    .filter((item) => item.referenceScore > -0.75)
     .slice(0, count);
 }
 

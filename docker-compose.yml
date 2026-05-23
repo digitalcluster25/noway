@@ -1,0 +1,14 @@
+services:
+  noway:
+    build: .
+    container_name: noway
+    restart: unless-stopped
+    expose:
+      - "80"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.noway.rule=Host(`noway.spaces.community`)"
+      - "traefik.http.routers.noway.entrypoints=websecure"
+      - "traefik.http.routers.noway.tls=true"
+      - "traefik.http.routers.noway.tls.certresolver=letsencrypt"
+      - "traefik.http.services.noway.loadbalancer.server.port=80"

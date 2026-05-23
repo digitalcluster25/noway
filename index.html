@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Art Direction Pipeline MVP</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="agent-panel" aria-label="Панель агента">
+        <div class="brand">
+          <div class="brand-mark">AD</div>
+          <div>
+            <p class="eyebrow">MVP Studio</p>
+            <h1>Art Direction Pipeline</h1>
+          </div>
+        </div>
+
+        <nav class="steps" aria-label="Шаги пайплайна">
+          <button class="step is-active" data-step="brief">
+            <span>01</span>
+            <strong>Brief</strong>
+          </button>
+          <button class="step" data-step="directions">
+            <span>02</span>
+            <strong>Directions</strong>
+          </button>
+          <button class="step" data-step="moodboard">
+            <span>03</span>
+            <strong>Moodboard</strong>
+          </button>
+          <button class="step" data-step="concepts">
+            <span>04</span>
+            <strong>Concepts</strong>
+          </button>
+        </nav>
+
+        <section class="agent-note" aria-live="polite">
+          <p class="eyebrow">Agent note</p>
+          <h2 id="agent-title">Сначала фиксируем язык проекта</h2>
+          <p id="agent-copy">
+            Пользователь может не знать профессиональных формулировок. Поэтому интерфейс
+            предлагает готовые варианты и собирает из них дизайн-гипотезу.
+          </p>
+        </section>
+
+        <section class="brief-summary">
+          <p class="eyebrow">Live brief</p>
+          <div class="summary-item">
+            <span>Проект</span>
+            <strong>Home Wood Spa redesign</strong>
+          </div>
+          <div class="summary-item">
+            <span>Аудитория</span>
+            <strong>Девелоперы, инвесторы, архитекторы</strong>
+          </div>
+          <div class="summary-item">
+            <span>Уровень</span>
+            <strong>Premium architectural wellness</strong>
+          </div>
+        </section>
+      </aside>
+
+      <main class="workspace">
+        <section class="view is-active" id="brief">
+          <header class="view-header">
+            <div>
+              <p class="eyebrow">Step 01</p>
+              <h2>Бриф через готовые формулировки</h2>
+            </div>
+            <button class="primary-action" data-go="directions">Собрать направления</button>
+          </header>
+
+          <div class="brief-grid">
+            <article class="panel wide">
+              <label for="project-url">Сайт или объект редизайна</label>
+              <div class="input-row">
+                <input id="project-url" value="https://homewoodspa.com/" />
+                <button class="ghost-action">Анализ</button>
+              </div>
+              <p class="hint">
+                MVP хранит URL как часть брифа. Следующая версия сможет автоматически
+                извлекать структуру, тексты и визуальные слабые места.
+              </p>
+            </article>
+
+            <article class="panel">
+              <h3>Тип задачи</h3>
+              <div class="chip-group" data-group="task"></div>
+            </article>
+
+            <article class="panel">
+              <h3>Эффект для клиента</h3>
+              <div class="chip-group" data-group="effect"></div>
+            </article>
+
+            <article class="panel">
+              <h3>Визуальный характер</h3>
+              <div class="chip-group dense" data-group="tone"></div>
+            </article>
+
+            <article class="panel">
+              <h3>Исключить</h3>
+              <div class="chip-group" data-group="avoid"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="directions">
+          <header class="view-header">
+            <div>
+              <p class="eyebrow">Step 02</p>
+              <h2>Направления для moodboard research</h2>
+            </div>
+            <button class="primary-action" data-go="moodboard">Перейти к референсам</button>
+          </header>
+          <div class="direction-grid" id="direction-grid"></div>
+        </section>
+
+        <section class="view" id="moodboard">
+          <header class="view-header">
+            <div>
+              <p class="eyebrow">Step 03</p>
+              <h2>Moodboard review</h2>
+            </div>
+            <button class="primary-action" data-go="concepts">Собрать стратегию</button>
+          </header>
+
+          <div class="toolbar" aria-label="Фильтры референсов">
+            <button class="filter is-active" data-filter="all">Все</button>
+            <button class="filter" data-filter="typography">Типографика</button>
+            <button class="filter" data-filter="photo">Фото</button>
+            <button class="filter" data-filter="materials">Материалы</button>
+            <button class="filter" data-filter="layout">Сетка</button>
+          </div>
+
+          <div class="moodboard-grid" id="moodboard-grid"></div>
+        </section>
+
+        <section class="view" id="concepts">
+          <header class="view-header">
+            <div>
+              <p class="eyebrow">Step 04</p>
+              <h2>Visual strategy & concept routes</h2>
+            </div>
+            <button class="secondary-action" id="export-brief">Скопировать brief</button>
+          </header>
+
+          <div class="strategy-layout">
+            <article class="panel strategy-card">
+              <p class="eyebrow">Recommended strategy</p>
+              <h3>Premium architectural wellness studio</h3>
+              <p>
+                Сайт должен ощущаться как портфолио архитектурного бюро с сильным
+                hospitality/wellness слоем: крупные проекты, дорогая типографика,
+                тактильные материалы и минимум декоративных клише.
+              </p>
+              <dl class="strategy-list">
+                <div>
+                  <dt>Тон</dt>
+                  <dd>Спокойный, уверенный, архитектурный, материальный.</dd>
+                </div>
+                <div>
+                  <dt>Фото</dt>
+                  <dd>Проекты, детали дерева и камня, вода, пар, свет, масштаб.</dd>
+                </div>
+                <div>
+                  <dt>UI</dt>
+                  <dd>Editorial-сетка, строгая навигация, мало иконок, больше пространства.</dd>
+                </div>
+                <div>
+                  <dt>Избегать</dt>
+                  <dd>SaaS-карточек, банных клише, стоковых людей, кислотных цветов.</dd>
+                </div>
+              </dl>
+            </article>
+
+            <div class="concept-grid" id="concept-grid"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite">Brief скопирован</div>
+    <script src="./app.js"></script>
+  </body>
+</html>

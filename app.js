@@ -358,6 +358,22 @@ function listOrFallback(items, fallback) {
   return items.length ? items.join(", ") : fallback;
 }
 
+function imageForVisual(visual) {
+  const map = {
+    "visual-architecture": hwsImages.pool,
+    "visual-wellness": hwsImages.hammam,
+    "visual-material": hwsImages.material,
+    "visual-investor": hwsImages.lobby,
+    "visual-editorial": hwsImages.sauna,
+    "visual-japanese": hwsImages.exterior,
+  };
+  return map[visual] || "";
+}
+
+function referenceImage(item) {
+  return item.image || imageForVisual(item.visual);
+}
+
 function renderProjectFields() {
   document.querySelector("#project-title").value = state.project.title;
   document.querySelector("#project-url").value = state.project.url;
@@ -508,10 +524,11 @@ function renderReferences(filter = state.activeFilter) {
   });
 
   document.querySelector("#moodboard-grid").innerHTML = visible
-    .map(
-      (item) => `
+    .map((item) => {
+      const image = referenceImage(item);
+      return `
         <article class="reference-card">
-          <div class="reference-visual ${item.image ? "" : item.visual}" ${item.image ? `style="background-image:url('${item.image}')"` : ""}></div>
+          <div class="reference-visual ${image ? "" : item.visual}" ${image ? `style="background-image:url('${image}')"` : ""}></div>
           <div class="card-body">
             <div class="meta">
               <span class="tag">${escapeHtml(item.source || "manual")}</span>
@@ -535,8 +552,8 @@ function renderReferences(filter = state.activeFilter) {
             </div>
           </div>
         </article>
-      `,
-    )
+      `;
+    })
     .join("");
 }
 

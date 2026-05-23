@@ -204,11 +204,13 @@ function isLowQualityReference(item) {
     "themeforest.net",
     "templatemag.com",
   ];
-  const blockedUrlParts = ["/template", "/templates", "/theme", "/themes", "/download"];
+  const blockedUrlParts = ["/template", "/templates", "/theme", "/themes", "/download", "/market/product"];
   const blockedTextParts = [
     "website builder",
     "portfolio template",
     "wordpress theme",
+    "wordpress",
+    "elementor",
     "premium template",
     "free template",
     "free websites",

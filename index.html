@@ -72,13 +72,26 @@
           <header class="view-header">
             <div>
               <p class="eyebrow">Step 01</p>
-              <h2>Бриф через готовые формулировки</h2>
+              <h2>Хотелки</h2>
             </div>
-            <button class="primary-action" data-go="directions">Собрать направления</button>
           </header>
+
+          <article class="panel wish-panel" id="wish-panel">
+            <label for="project-wish">Что хотите получить?</label>
+            <textarea
+              id="project-wish"
+              rows="7"
+              placeholder="Например: нужен редизайн сайта архитектурной компании, чтобы он выглядел дороже, убедительнее для инвесторов и без шаблонного SaaS-вида"
+            ></textarea>
+            <button class="primary-action" id="wish-submit" type="button">Собрать бриф</button>
+          </article>
 
           <div class="brief-grid">
             <article class="panel wide">
+              <div class="section-head">
+                <p class="eyebrow">Адаптированный бриф</p>
+                <h3>Проверьте и поправьте, если нужно</h3>
+              </div>
               <div class="form-grid">
                 <div>
                   <label for="project-title">Название проекта</label>
@@ -98,9 +111,9 @@
                 </div>
               </div>
               <p class="hint">
-                Данные сохраняются в браузере автоматически. Можно заменить кейс Home Wood Spa
-                на новый проект и пройти тот же пайплайн.
+                Эти поля заполняются из запроса выше. Можно поправить руками перед подбором направлений.
               </p>
+              <button class="primary-action" data-go="directions">Собрать направления</button>
             </article>
 
             <article class="panel">

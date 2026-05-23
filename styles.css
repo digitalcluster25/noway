@@ -314,6 +314,28 @@ select {
   gap: 14px;
 }
 
+.wish-panel {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.wish-panel textarea {
+  min-height: 180px;
+}
+
+.wish-panel .primary-action {
+  justify-self: start;
+}
+
+.section-head {
+  margin-bottom: 16px;
+}
+
+.section-head h3 {
+  font-size: 22px;
+}
+
 .hint {
   max-width: 760px;
   margin: 12px 0 0;

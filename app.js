@@ -316,8 +316,8 @@ const concepts = [
 
 const agentCopy = {
   brief: {
-    title: "Сначала фиксируем язык проекта",
-    copy: "Пользователь может не знать профессиональных формулировок. Поэтому интерфейс предлагает готовые варианты и собирает из них дизайн-гипотезу.",
+    title: "Сначала собираем хотелки",
+    copy: "Пользователь пишет обычным языком, что хочет получить. Агент превращает это в понятный бриф и стартовые формулировки.",
   },
   directions: {
     title: "Теперь превращаем выборы в поисковые направления",
@@ -350,6 +350,7 @@ function createDefaultState() {
       url: "https://homewoodspa.com/",
       audience: "Девелоперы, инвесторы, архитекторы",
       goal: "Создать впечатление: эти ребята знают толк в дизайне, все будет на уровне",
+      wish: "",
     },
     selections: structuredClone(defaultSelections),
     directionStatus: Object.fromEntries(directions.map((item) => [item.title, "keep"])),
@@ -408,6 +409,95 @@ function saveState() {
   localStorage.setItem(storageKey, JSON.stringify(state));
   renderSummary();
   renderStrategy();
+}
+
+function includesAny(text, words) {
+  return words.some((word) => text.includes(word));
+}
+
+function inferWishBrief(wish) {
+  const text = wish.toLowerCase();
+  const urlMatch = wish.match(/https?:\/\/[^\s]+/i);
+  const selections = {
+    task: new Set(["Поднять визуальный уровень"]),
+    effect: new Set(),
+    tone: new Set(),
+    avoid: new Set(),
+  };
+
+  if (includesAny(text, ["редизайн", "передел", "обнов"])) selections.task.add("Редизайн существующего сайта");
+  if (includesAny(text, ["довер", "имидж", "репутац"])) selections.task.add("Имиджевый сайт для доверия");
+  if (includesAny(text, ["портфолио", "кейсы", "проекты"])) selections.task.add("Портфолио высокого уровня");
+  if (includesAny(text, ["презентац", "pdf", "питч"])) selections.task.add("Заменить PDF-презентацию");
+  if (includesAny(text, ["архитект", "студ"])) selections.task.add("Конкурировать с архитектурными студиями");
+
+  if (includesAny(text, ["инвест", "девелоп", "дорог", "премиум", "premium"])) {
+    selections.effect.add("Им можно доверить дорогой объект");
+    selections.effect.add("Это international premium level");
+  }
+  if (includesAny(text, ["вкус", "дизайн", "уровень"])) selections.effect.add("У них есть вкус");
+  if (includesAny(text, ["архитект"])) selections.effect.add("Это уровень архитектурной студии");
+  if (includesAny(text, ["материал", "дерево", "камень", "вода", "спа", "spa"])) {
+    selections.effect.add("Они понимают материалы и атмосферу");
+  }
+  if (includesAny(text, ["инженер", "строит", "реализац", "комплекс"])) selections.effect.add("Они сильны и в дизайне, и в инженерии");
+
+  if (includesAny(text, ["архитект"])) selections.tone.add("Архитектурный");
+  if (includesAny(text, ["минимал", "дорог", "premium", "премиум"])) {
+    selections.tone.add("Дорогой минимализм");
+    selections.tone.add("Спокойная премиальность");
+  }
+  if (includesAny(text, ["журнал", "editorial", "редакц"])) selections.tone.add("Журнальный / editorial");
+  if (includesAny(text, ["галере", "портфолио", "проекты"])) selections.tone.add("Галерейный");
+  if (includesAny(text, ["hotel", "hospitality", "отель", "гостин", "спа", "spa"])) selections.tone.add("Contemporary hospitality");
+  if (includesAny(text, ["камень", "дерево", "вода", "материал", "тактил"])) {
+    selections.tone.add("Камень, дерево, вода");
+    selections.tone.add("Материальный / tactile");
+    selections.tone.add("Natural luxury");
+  }
+  if (includesAny(text, ["инженер", "точн"])) selections.tone.add("Инженерно-точный");
+  selections.tone.add("Тихая уверенность");
+
+  if (includesAny(text, ["saas", "сервис", "шаблон"])) selections.avoid.add("Шаблонный SaaS-вид");
+  if (includesAny(text, ["икон", "wellness"])) selections.avoid.add("Банальные wellness-иконки");
+  if (includesAny(text, ["сток", "улыба"])) selections.avoid.add("Стоковые улыбающиеся люди");
+  if (includesAny(text, ["кислот", "ярк", "неон"])) selections.avoid.add("Кислотные цвета");
+  if (includesAny(text, ["пуст", "чрезмерный минимализм"])) selections.avoid.add("Слишком пустой минимализм");
+  if (includesAny(text, ["3d", "3д"])) selections.avoid.add("Дешевые 3D-иконки");
+  if (includesAny(text, ["клише", "спа"])) selections.avoid.add("Спа-клише");
+  if (includesAny(text, ["золото", "мрамор"])) selections.avoid.add("Избыточный luxury с золотом");
+
+  return {
+    url: urlMatch?.[0]?.replace(/[),.]+$/, "") || "",
+    title: includesAny(text, ["home wood", "hws"]) ? "Home Wood Spa redesign" : "Новый визуальный концепт",
+    audience: includesAny(text, ["инвест", "девелоп", "архитект"])
+      ? "Девелоперы, инвесторы, архитекторы"
+      : includesAny(text, ["клиент", "покупател"])
+        ? "Потенциальные клиенты и партнеры"
+        : "Премиальная аудитория и принимающие решения",
+    goal: wish.length > 140 ? wish.slice(0, 137).trim() + "..." : wish,
+    selections: Object.fromEntries(Object.entries(selections).map(([key, value]) => [key, [...value]])),
+  };
+}
+
+function applyWishBrief() {
+  const wish = document.querySelector("#project-wish").value.trim();
+  if (!wish) return;
+  const brief = inferWishBrief(wish);
+  state.project.wish = wish;
+  state.project.title = brief.title;
+  if (brief.url) state.project.url = brief.url;
+  state.project.audience = brief.audience;
+  state.project.goal = brief.goal;
+  state.selections = {
+    task: brief.selections.task.length ? brief.selections.task : [...defaultSelections.task],
+    effect: brief.selections.effect.length ? brief.selections.effect : [...defaultSelections.effect],
+    tone: brief.selections.tone.length ? brief.selections.tone : [...defaultSelections.tone],
+    avoid: brief.selections.avoid.length ? brief.selections.avoid : [...defaultSelections.avoid],
+  };
+  renderProjectFields();
+  renderChips();
+  saveState();
 }
 
 function escapeHtml(value) {
@@ -528,6 +618,7 @@ function visualMarkup(item, className) {
 }
 
 function renderProjectFields() {
+  document.querySelector("#project-wish").value = state.project.wish || "";
   document.querySelector("#project-title").value = state.project.title;
   document.querySelector("#project-url").value = state.project.url;
   document.querySelector("#project-audience").value = state.project.audience;
@@ -1237,6 +1328,11 @@ function bindEvents() {
   document.querySelectorAll("#project-title, #project-url, #project-audience, #project-goal").forEach((field) => {
     field.addEventListener("input", updateProjectFromInputs);
   });
+  document.querySelector("#project-wish").addEventListener("input", (event) => {
+    state.project.wish = event.target.value.trim();
+    saveState();
+  });
+  document.querySelector("#wish-submit").addEventListener("click", applyWishBrief);
 
   document.querySelector("#like-candidate").addEventListener("click", () => voteCandidate("like"));
   document.querySelector("#reject-candidate").addEventListener("click", () => voteCandidate("dislike"));

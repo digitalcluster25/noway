@@ -596,6 +596,8 @@ function renderReferenceDirectionOptions() {
 }
 
 function renderLanguage() {
+  const languageGrid = document.querySelector("#language-grid");
+  if (!languageGrid) return;
   const signal = getTasteSignal();
   const likedTags = signal.likedTags.map(([tag]) => tag);
   const refinedQueries = likedTags.length
@@ -605,7 +607,7 @@ function renderLanguage() {
         `${likedTags.slice(0, 3).join(" ")} web design reference`,
       ]
     : [];
-  document.querySelector("#language-grid").innerHTML = state.languageQueries
+  languageGrid.innerHTML = state.languageQueries
     .map((item, index) => {
       const queries = index === 0 && refinedQueries.length ? refinedQueries : item.queries;
       return `
@@ -783,7 +785,7 @@ function addSearchCandidates(results, query) {
     title: item.title || `Search reference ${offset + index + 1}`,
     source: `${item.sourceRoute || "Search"}: ${item.source || "web"}`,
     url: item.url,
-    direction: document.querySelector("#reference-direction").value || "Search Agent",
+    direction: document.querySelector("#reference-direction").value || "Reference search",
     visual: ["visual-editorial", "visual-architecture", "visual-wellness", "visual-material"][index % 4],
     image: item.preview,
     tags: [...new Set(["search", ...(item.tags || [])])],
@@ -1238,22 +1240,11 @@ function bindEvents() {
 
   document.querySelector("#like-candidate").addEventListener("click", () => voteCandidate("like"));
   document.querySelector("#reject-candidate").addEventListener("click", () => voteCandidate("dislike"));
-  document.querySelectorAll('[name="search-source"]').forEach((input) => {
-    input.addEventListener("change", () => {
-      state.searchSources = [...document.querySelectorAll('[name="search-source"]:checked')].map((item) => item.value);
-      saveState();
-    });
-  });
-  document.querySelector("#search-query").addEventListener("input", (event) => {
-    state.searchQuery = event.target.value.trim();
-    saveState();
-  });
-  document.querySelector("#search-form").addEventListener("submit", async (event) => {
-    event.preventDefault();
+  document.querySelector("#search-submit").addEventListener("click", async () => {
     const status = document.querySelector("#search-status");
     const submit = document.querySelector("#search-submit");
-    const query = document.querySelector("#search-query").value.trim() || buildSearchQuery();
-    const sources = [...document.querySelectorAll('[name="search-source"]:checked')].map((item) => item.value);
+    const query = buildSearchQuery();
+    const sources = state.searchSources?.length ? state.searchSources : ["behance", "dribbble", "pinterest", "awwwards"];
 
     if (!sources.length) {
       status.className = "form-status is-error";

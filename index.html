@@ -26,20 +26,16 @@
             <span>02</span>
             <strong>Directions</strong>
           </button>
-          <button class="step" data-step="moodboard">
-            <span>03</span>
-            <strong>Language</strong>
-          </button>
           <button class="step" data-step="discover">
-            <span>04</span>
+            <span>03</span>
             <strong>Discover</strong>
           </button>
           <button class="step" data-step="moodboard-review">
-            <span>05</span>
+            <span>04</span>
             <strong>Moodboard</strong>
           </button>
           <button class="step" data-step="concepts">
-            <span>06</span>
+            <span>05</span>
             <strong>Concepts</strong>
           </button>
         </nav>
@@ -135,38 +131,15 @@
               <p class="eyebrow">Step 02</p>
               <h2>Направления для moodboard research</h2>
             </div>
-            <button class="primary-action" data-go="moodboard">Перейти к подбору</button>
-          </header>
-          <div class="direction-grid" id="direction-grid"></div>
-        </section>
-
-        <section class="view" id="moodboard">
-          <header class="view-header">
-            <div>
-              <p class="eyebrow">Step 03</p>
-              <h2>Design language search</h2>
-            </div>
             <button class="primary-action" data-go="discover">Перейти к подбору</button>
           </header>
-
-          <div class="language-layout">
-            <article class="panel language-card">
-              <p class="eyebrow">Search language</p>
-              <h3>Ищем не отрасль, а визуальный паттерн</h3>
-              <p>
-                Бизнес-домен помогает понять задачу, но референсы лучше искать по
-                визуальному языку: типографика, сетка, storytelling, плотность UI,
-                media style и механика доверия.
-              </p>
-            </article>
-            <div class="language-grid" id="language-grid"></div>
-          </div>
+          <div class="direction-grid" id="direction-grid"></div>
         </section>
 
         <section class="view" id="discover">
           <header class="view-header">
             <div>
-              <p class="eyebrow">Step 04</p>
+              <p class="eyebrow">Step 03</p>
               <h2>Discover references</h2>
             </div>
             <button class="primary-action" data-go="moodboard-review">Открыть moodboard</button>
@@ -191,26 +164,12 @@
                   <strong id="voted-count">0</strong>
                 </div>
               </div>
-              <form class="search-agent" id="search-form">
-                <label for="search-query">Search Agent</label>
-                <textarea id="search-query" rows="3" placeholder="premium editorial website design references"></textarea>
-                <div class="source-list" aria-label="Источники поиска">
-                  <label><input type="checkbox" name="search-source" value="behance" checked> Behance</label>
-                  <label><input type="checkbox" name="search-source" value="dribbble" checked> Dribbble</label>
-                  <label><input type="checkbox" name="search-source" value="pinterest" checked> Pinterest</label>
-                  <label><input type="checkbox" name="search-source" value="awwwards" checked> Awwwards</label>
-                </div>
-                <button class="primary-action" id="search-submit" type="submit">Найти реальные референсы</button>
-                <p class="form-status" id="search-status" role="status" aria-live="polite"></p>
-              </form>
               <div class="discover-actions">
+                <button class="primary-action" id="search-submit" type="button">Найти референсы</button>
                 <button class="secondary-action" id="reject-candidate" type="button">Не подходит</button>
                 <button class="primary-action" id="like-candidate" type="button">В moodboard</button>
               </div>
-              <section class="taste-panel">
-                <p class="eyebrow">Taste signal</p>
-                <div id="taste-signal"></div>
-              </section>
+              <p class="form-status" id="search-status" role="status" aria-live="polite"></p>
               <form class="batch-form is-disabled" id="batch-form" hidden>
                 <label for="batch-urls">Пачка URL</label>
                 <textarea id="batch-urls" rows="7" placeholder="https://site-one.com&#10;https://site-two.com"></textarea>
@@ -224,7 +183,7 @@
         <section class="view" id="moodboard-review">
           <header class="view-header">
             <div>
-              <p class="eyebrow">Step 05</p>
+              <p class="eyebrow">Step 04</p>
               <h2>Moodboard review</h2>
             </div>
             <button class="primary-action" data-go="concepts">Собрать стратегию</button>
@@ -239,11 +198,6 @@
             <button class="filter" data-filter="discover">Из Discover</button>
             <button class="filter" data-filter="manual">Добавленные</button>
           </div>
-
-          <article class="panel taste-review">
-            <p class="eyebrow">What user seems to prefer</p>
-            <div id="taste-review"></div>
-          </article>
 
           <article class="panel import-panel">
             <div>
@@ -275,7 +229,7 @@
         <section class="view" id="concepts">
           <header class="view-header">
             <div>
-              <p class="eyebrow">Step 06</p>
+              <p class="eyebrow">Step 05</p>
               <h2>Visual strategy & concept routes</h2>
             </div>
             <div class="header-actions">

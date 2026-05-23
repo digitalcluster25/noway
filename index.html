@@ -24,22 +24,38 @@
           </button>
           <button class="step" data-step="brief">
             <span>02</span>
-            <strong>Brief</strong>
+            <strong>Проект</strong>
+          </button>
+          <button class="step" data-step="task">
+            <span>03</span>
+            <strong>Задача</strong>
+          </button>
+          <button class="step" data-step="effect">
+            <span>04</span>
+            <strong>Эффект</strong>
+          </button>
+          <button class="step" data-step="tone">
+            <span>05</span>
+            <strong>Характер</strong>
+          </button>
+          <button class="step" data-step="avoid">
+            <span>06</span>
+            <strong>Исключить</strong>
           </button>
           <button class="step" data-step="directions">
-            <span>03</span>
+            <span>07</span>
             <strong>Directions</strong>
           </button>
           <button class="step" data-step="discover">
-            <span>04</span>
+            <span>08</span>
             <strong>Discover</strong>
           </button>
           <button class="step" data-step="moodboard-review">
-            <span>05</span>
+            <span>09</span>
             <strong>Moodboard</strong>
           </button>
           <button class="step" data-step="concepts">
-            <span>06</span>
+            <span>10</span>
             <strong>Concepts</strong>
           </button>
         </nav>
@@ -95,15 +111,15 @@
           <header class="view-header">
             <div>
               <p class="eyebrow">Step 02</p>
-              <h2>Brief</h2>
+              <h2>Проект</h2>
             </div>
-            <button class="primary-action" data-go="directions">Собрать направления</button>
+            <button class="primary-action" data-go="task">Дальше</button>
           </header>
           <div class="brief-grid">
             <article class="panel wide">
               <div class="section-head">
-                <p class="eyebrow">Адаптированный бриф</p>
-                <h3>Проверьте и поправьте, если нужно</h3>
+                <p class="eyebrow">Проект</p>
+                <h3>Проверьте основу брифа</h3>
               </div>
               <div class="form-grid">
                 <div>
@@ -126,35 +142,71 @@
               <p class="hint">
                 Эти поля заполняются из запроса выше. Можно поправить руками перед подбором направлений.
               </p>
-              <button class="primary-action" data-go="directions">Собрать направления</button>
-            </article>
-
-            <article class="panel">
-              <h3>Тип задачи</h3>
-              <div class="chip-group" data-group="task"></div>
-            </article>
-
-            <article class="panel">
-              <h3>Эффект для клиента</h3>
-              <div class="chip-group" data-group="effect"></div>
-            </article>
-
-            <article class="panel">
-              <h3>Визуальный характер</h3>
-              <div class="chip-group dense" data-group="tone"></div>
-            </article>
-
-            <article class="panel">
-              <h3>Исключить</h3>
-              <div class="chip-group" data-group="avoid"></div>
+              <button class="primary-action" data-go="task">Дальше</button>
             </article>
           </div>
+        </section>
+
+        <section class="view" id="task">
+          <header class="view-header">
+            <div>
+              <p class="eyebrow">Step 03</p>
+              <h2>Тип задачи</h2>
+            </div>
+            <button class="primary-action" data-go="effect">Дальше</button>
+          </header>
+          <article class="panel choice-panel">
+            <h3>Что нужно сделать с сайтом?</h3>
+            <div class="chip-group large" data-group="task"></div>
+          </article>
+        </section>
+
+        <section class="view" id="effect">
+          <header class="view-header">
+            <div>
+              <p class="eyebrow">Step 04</p>
+              <h2>Эффект для клиента</h2>
+            </div>
+            <button class="primary-action" data-go="tone">Дальше</button>
+          </header>
+          <article class="panel choice-panel">
+            <h3>Какое впечатление должен создать сайт?</h3>
+            <div class="chip-group large" data-group="effect"></div>
+          </article>
+        </section>
+
+        <section class="view" id="tone">
+          <header class="view-header">
+            <div>
+              <p class="eyebrow">Step 05</p>
+              <h2>Визуальный характер</h2>
+            </div>
+            <button class="primary-action" data-go="avoid">Дальше</button>
+          </header>
+          <article class="panel choice-panel">
+            <h3>Каким должен быть визуальный язык?</h3>
+            <div class="chip-group large" data-group="tone"></div>
+          </article>
+        </section>
+
+        <section class="view" id="avoid">
+          <header class="view-header">
+            <div>
+              <p class="eyebrow">Step 06</p>
+              <h2>Исключить</h2>
+            </div>
+            <button class="primary-action" data-go="directions">Собрать направления</button>
+          </header>
+          <article class="panel choice-panel">
+            <h3>Чего точно не должно быть?</h3>
+            <div class="chip-group large" data-group="avoid"></div>
+          </article>
         </section>
 
         <section class="view" id="directions">
           <header class="view-header">
             <div>
-              <p class="eyebrow">Step 03</p>
+              <p class="eyebrow">Step 07</p>
               <h2>Направления для moodboard research</h2>
             </div>
             <button class="primary-action" data-go="discover">Перейти к подбору</button>
@@ -165,7 +217,7 @@
         <section class="view" id="discover">
           <header class="view-header">
             <div>
-              <p class="eyebrow">Step 04</p>
+              <p class="eyebrow">Step 08</p>
               <h2>Discover references</h2>
             </div>
             <button class="primary-action" data-go="moodboard-review">Открыть moodboard</button>
@@ -209,7 +261,7 @@
         <section class="view" id="moodboard-review">
           <header class="view-header">
             <div>
-              <p class="eyebrow">Step 05</p>
+              <p class="eyebrow">Step 09</p>
               <h2>Moodboard review</h2>
             </div>
             <button class="primary-action" data-go="concepts">Собрать стратегию</button>
@@ -255,7 +307,7 @@
         <section class="view" id="concepts">
           <header class="view-header">
             <div>
-              <p class="eyebrow">Step 06</p>
+              <p class="eyebrow">Step 10</p>
               <h2>Visual strategy & concept routes</h2>
             </div>
             <div class="header-actions">

@@ -309,6 +309,55 @@ function inferDesignTags(text) {
   return [...new Set(tags.length ? tags : ["search", "reference"])];
 }
 
+function normalizeReferencePath(hostname, pathname) {
+  const cleanPath = pathname.replace(/\/+$/, "") || "/";
+  if (hostname === "behance.net") {
+    const parts = cleanPath.split("/").filter(Boolean);
+    if (parts[0] === "gallery" && parts[1]) return `/gallery/${parts[1]}`;
+  }
+  if (hostname === "dribbble.com") {
+    const parts = cleanPath.split("/").filter(Boolean);
+    if (parts[0] === "shots" && parts[1]) return `/shots/${parts[1].split("-")[0]}`;
+  }
+  if (hostname.endsWith("pinterest.com")) {
+    const parts = cleanPath.split("/").filter(Boolean);
+    if (parts[0] === "pin" && parts[1]) return `/pin/${parts[1]}`;
+  }
+  if (hostname === "awwwards.com") {
+    const parts = cleanPath.split("/").filter(Boolean);
+    if (parts[0] === "sites" && parts[1]) return `/sites/${parts[1]}`;
+  }
+  return cleanPath.toLowerCase();
+}
+
+function getReferenceKey(item) {
+  try {
+    const parsed = new URL(item.url);
+    const hostname = parsed.hostname.replace(/^www\./, "").toLowerCase();
+    return `${hostname}${normalizeReferencePath(hostname, parsed.pathname)}`;
+  } catch {
+    return "";
+  }
+}
+
+function dedupeReferenceResults(results) {
+  const seenUrls = new Set();
+  const seenTitles = new Set();
+  return results.filter((item) => {
+    const urlKey = getReferenceKey(item);
+    const titleKey = stripSearchText(item.title || "")
+      .toLowerCase()
+      .replace(/[^a-zа-яё0-9]+/gi, " ")
+      .trim();
+    const compactTitleKey = titleKey.split(" ").slice(0, 8).join(" ");
+    if (!urlKey || seenUrls.has(urlKey)) return false;
+    if (compactTitleKey && seenTitles.has(compactTitleKey)) return false;
+    seenUrls.add(urlKey);
+    if (compactTitleKey) seenTitles.add(compactTitleKey);
+    return true;
+  });
+}
+
 function scoreReferenceResult(item) {
   const url = item.url.toLowerCase();
   const hostname = new URL(item.url).hostname.replace(/^www\./, "");
@@ -425,7 +474,7 @@ function isLowQualityReference(item, sourceId) {
 }
 
 function rankReferenceResults(results, count, sourceId) {
-  return results
+  return dedupeReferenceResults(results)
     .filter((item) => isAcceptedSourceReference(item, sourceId) && !isLowQualityReference(item, sourceId))
     .map((item) => ({ ...item, referenceScore: scoreReferenceResult(item) }))
     .sort((a, b) => b.referenceScore - a.referenceScore)
@@ -571,9 +620,14 @@ app.post("/api/search-references", async (req, res) => {
     }
 
     const searchResults = [];
+    const seenSearchResults = new Set();
     for (let index = 0; searchResults.length < count && index < perSourceCount; index += 1) {
       groupedResults.forEach((group) => {
-        if (group[index] && searchResults.length < count) searchResults.push(group[index]);
+        if (!group[index] || searchResults.length >= count) return;
+        const referenceKey = getReferenceKey(group[index]);
+        if (!referenceKey || seenSearchResults.has(referenceKey)) return;
+        seenSearchResults.add(referenceKey);
+        searchResults.push(group[index]);
       });
     }
     const results = [];

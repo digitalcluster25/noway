@@ -315,9 +315,13 @@ const concepts = [
 ];
 
 const agentCopy = {
-  brief: {
+  wishes: {
     title: "Сначала собираем хотелки",
-    copy: "Пользователь пишет обычным языком, что хочет получить. Агент превращает это в понятный бриф и стартовые формулировки.",
+    copy: "Пользователь пишет обычным языком, что хочет получить. Агент превращает это в бриф на следующем шаге.",
+  },
+  brief: {
+    title: "Проверяем адаптированный бриф",
+    copy: "Здесь можно поправить поля и выбранные формулировки перед тем, как агент построит направления для поиска референсов.",
   },
   directions: {
     title: "Теперь превращаем выборы в поисковые направления",
@@ -498,6 +502,7 @@ function applyWishBrief() {
   renderProjectFields();
   renderChips();
   saveState();
+  setStep("brief");
 }
 
 function escapeHtml(value) {
@@ -1476,7 +1481,7 @@ function bindEvents() {
     localStorage.removeItem(storageKey);
     Object.assign(state, createDefaultState());
     renderAll();
-    setStep("brief");
+    setStep("wishes");
   });
 
   document.querySelector("#export-brief").addEventListener("click", async () => {

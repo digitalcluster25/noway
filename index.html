@@ -18,24 +18,28 @@
         </div>
 
         <nav class="steps" aria-label="Шаги пайплайна">
-          <button class="step is-active" data-step="brief">
+          <button class="step is-active" data-step="wishes">
             <span>01</span>
+            <strong>Хотелки</strong>
+          </button>
+          <button class="step" data-step="brief">
+            <span>02</span>
             <strong>Brief</strong>
           </button>
           <button class="step" data-step="directions">
-            <span>02</span>
+            <span>03</span>
             <strong>Directions</strong>
           </button>
           <button class="step" data-step="discover">
-            <span>03</span>
+            <span>04</span>
             <strong>Discover</strong>
           </button>
           <button class="step" data-step="moodboard-review">
-            <span>04</span>
+            <span>05</span>
             <strong>Moodboard</strong>
           </button>
           <button class="step" data-step="concepts">
-            <span>05</span>
+            <span>06</span>
             <strong>Concepts</strong>
           </button>
         </nav>
@@ -68,7 +72,7 @@
       </aside>
 
       <main class="workspace">
-        <section class="view is-active" id="brief">
+        <section class="view is-active" id="wishes">
           <header class="view-header">
             <div>
               <p class="eyebrow">Step 01</p>
@@ -85,7 +89,16 @@
             ></textarea>
             <button class="primary-action" id="wish-submit" type="button">Собрать бриф</button>
           </article>
+        </section>
 
+        <section class="view" id="brief">
+          <header class="view-header">
+            <div>
+              <p class="eyebrow">Step 02</p>
+              <h2>Brief</h2>
+            </div>
+            <button class="primary-action" data-go="directions">Собрать направления</button>
+          </header>
           <div class="brief-grid">
             <article class="panel wide">
               <div class="section-head">
@@ -141,7 +154,7 @@
         <section class="view" id="directions">
           <header class="view-header">
             <div>
-              <p class="eyebrow">Step 02</p>
+              <p class="eyebrow">Step 03</p>
               <h2>Направления для moodboard research</h2>
             </div>
             <button class="primary-action" data-go="discover">Перейти к подбору</button>
@@ -152,7 +165,7 @@
         <section class="view" id="discover">
           <header class="view-header">
             <div>
-              <p class="eyebrow">Step 03</p>
+              <p class="eyebrow">Step 04</p>
               <h2>Discover references</h2>
             </div>
             <button class="primary-action" data-go="moodboard-review">Открыть moodboard</button>
@@ -196,7 +209,7 @@
         <section class="view" id="moodboard-review">
           <header class="view-header">
             <div>
-              <p class="eyebrow">Step 04</p>
+              <p class="eyebrow">Step 05</p>
               <h2>Moodboard review</h2>
             </div>
             <button class="primary-action" data-go="concepts">Собрать стратегию</button>
@@ -242,7 +255,7 @@
         <section class="view" id="concepts">
           <header class="view-header">
             <div>
-              <p class="eyebrow">Step 05</p>
+              <p class="eyebrow">Step 06</p>
               <h2>Visual strategy & concept routes</h2>
             </div>
             <div class="header-actions">

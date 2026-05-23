@@ -1,4 +1,13 @@
-const storageKey = "noway-art-direction-project-v2";
+const storageKey = "noway-art-direction-project-v4";
+
+const hwsImages = {
+  pool: "assets/hws-spa-pool.png",
+  sauna: "assets/hws-sauna-wood.png",
+  hammam: "assets/hws-hammam-stone.png",
+  exterior: "assets/hws-resort-exterior.png",
+  material: "assets/hws-material-water.png",
+  lobby: "assets/hws-hospitality-lobby.png",
+};
 
 const chipData = {
   task: [
@@ -125,9 +134,9 @@ const seedReferences = [
     url: "",
     direction: "Premium Architecture Studio",
     visual: "visual-architecture",
+    image: hwsImages.pool,
     tags: ["layout", "photo"],
     note: "Первый экран строится вокруг проекта, а не вокруг рекламного слогана.",
-    image: "",
     rating: "",
     reasons: [],
   },
@@ -138,9 +147,9 @@ const seedReferences = [
     url: "",
     direction: "Editorial Minimalism",
     visual: "visual-editorial",
+    image: hwsImages.sauna,
     tags: ["typography", "layout"],
     note: "Крупный спокойный заголовок сразу меняет ощущение ценового сегмента.",
-    image: "",
     rating: "",
     reasons: [],
   },
@@ -151,9 +160,9 @@ const seedReferences = [
     url: "",
     direction: "Luxury Wellness Resort",
     visual: "visual-wellness",
+    image: hwsImages.hammam,
     tags: ["photo", "materials"],
     note: "Wellness-слой выражается через материалы и свет, а не через иконки.",
-    image: "",
     rating: "",
     reasons: [],
   },
@@ -164,9 +173,9 @@ const seedReferences = [
     url: "",
     direction: "Material & Craft",
     visual: "visual-material",
+    image: hwsImages.material,
     tags: ["materials", "photo"],
     note: "Детали помогают доказать качество и ремесленную точность.",
-    image: "",
     rating: "",
     reasons: [],
   },
@@ -177,9 +186,9 @@ const seedReferences = [
     url: "",
     direction: "Investor-Grade Hospitality",
     visual: "visual-investor",
+    image: hwsImages.lobby,
     tags: ["layout", "typography"],
     note: "Структура подходит для девелоперов: цифры, масштаб, этапы, контроль.",
-    image: "",
     rating: "",
     reasons: [],
   },
@@ -190,9 +199,9 @@ const seedReferences = [
     url: "",
     direction: "Japanese Spa Restraint",
     visual: "visual-japanese",
+    image: hwsImages.exterior,
     tags: ["photo", "materials"],
     note: "Можно взять сдержанность и ритм, не копируя культурные клише.",
-    image: "",
     rating: "",
     reasons: [],
   },
@@ -203,9 +212,9 @@ const seedReferences = [
     url: "",
     direction: "Premium Architecture Studio",
     visual: "visual-architecture",
+    image: hwsImages.pool,
     tags: ["layout", "photo"],
     note: "Проекты выглядят как коллекция объектов, а не как обычный список услуг.",
-    image: "",
     rating: "",
     reasons: [],
   },
@@ -216,27 +225,27 @@ const seedReferences = [
     url: "",
     direction: "Luxury Wellness Resort",
     visual: "visual-wellness",
+    image: hwsImages.material,
     tags: ["typography", "materials"],
     note: "Хороший баланс между premium и живой человеческой атмосферой.",
-    image: "",
     rating: "",
     reasons: [],
   },
 ];
 
 const candidateTemplates = [
-  ["Architectural opening with full-bleed project", "Premium Architecture Studio", "visual-architecture", ["layout", "photo"]],
-  ["Warm resort wellness composition", "Luxury Wellness Resort", "visual-wellness", ["photo", "materials"]],
-  ["Material detail and craft system", "Material & Craft", "visual-material", ["materials", "photo"]],
-  ["Developer-grade hospitality grid", "Investor-Grade Hospitality", "visual-investor", ["layout", "typography"]],
-  ["Editorial serif landing page", "Editorial Minimalism", "visual-editorial", ["typography", "layout"]],
-  ["Quiet spa ritual layout", "Japanese Spa Restraint", "visual-japanese", ["photo", "materials"]],
-  ["Project gallery as architecture catalog", "Premium Architecture Studio", "visual-architecture", ["layout", "photo"]],
-  ["Stone, water and daylight palette", "Luxury Wellness Resort", "visual-wellness", ["materials", "photo"]],
-  ["Precision engineering proof section", "Investor-Grade Hospitality", "visual-investor", ["layout", "typography"]],
-  ["Tactile interior close-up language", "Material & Craft", "visual-material", ["materials", "photo"]],
-  ["Minimal navigation and large typography", "Editorial Minimalism", "visual-editorial", ["typography", "layout"]],
-  ["Restrained natural luxury page", "Japanese Spa Restraint", "visual-japanese", ["photo", "materials"]],
+  ["Architectural opening with full-bleed project", "Premium Architecture Studio", "visual-architecture", ["layout", "photo"], hwsImages.pool],
+  ["Warm resort wellness composition", "Luxury Wellness Resort", "visual-wellness", ["photo", "materials"], hwsImages.hammam],
+  ["Material detail and craft system", "Material & Craft", "visual-material", ["materials", "photo"], hwsImages.material],
+  ["Developer-grade hospitality grid", "Investor-Grade Hospitality", "visual-investor", ["layout", "typography"], hwsImages.lobby],
+  ["Editorial sauna typography direction", "Editorial Minimalism", "visual-editorial", ["typography", "layout"], hwsImages.sauna],
+  ["Quiet spa ritual exterior", "Japanese Spa Restraint", "visual-japanese", ["photo", "materials"], hwsImages.exterior],
+  ["Project gallery as architecture catalog", "Premium Architecture Studio", "visual-architecture", ["layout", "photo"], hwsImages.pool],
+  ["Stone, water and daylight palette", "Luxury Wellness Resort", "visual-wellness", ["materials", "photo"], hwsImages.material],
+  ["Precision hospitality lobby language", "Investor-Grade Hospitality", "visual-investor", ["layout", "typography"], hwsImages.lobby],
+  ["Tactile interior close-up language", "Material & Craft", "visual-material", ["materials", "photo"], hwsImages.material],
+  ["Warm wood and controlled light", "Editorial Minimalism", "visual-editorial", ["typography", "layout"], hwsImages.sauna],
+  ["Restrained natural luxury resort", "Japanese Spa Restraint", "visual-japanese", ["photo", "materials"], hwsImages.exterior],
 ];
 
 const concepts = [
@@ -306,13 +315,14 @@ function createDefaultState() {
 }
 
 function createCandidates(offset = 0) {
-  return candidateTemplates.map(([title, direction, visual, tags], index) => ({
+  return candidateTemplates.map(([title, direction, visual, tags, image], index) => ({
     id: `candidate-${offset + index + 1}`,
     title: `${title} ${offset ? `#${offset + index + 1}` : ""}`.trim(),
     source: ["Awwwards search", "Behance search", "Dribbble search", "Siteinspire search"][index % 4],
     url: "",
     direction,
     visual,
+    image,
     tags,
     note: "Кандидат для быстрого отбора. В реальной версии здесь будет найденный URL, скриншот и источник поиска.",
     vote: "",
@@ -440,7 +450,7 @@ function renderDiscover() {
   }
 
   document.querySelector("#discover-card").innerHTML = `
-    <div class="discover-visual ${candidate.visual}"></div>
+    <div class="discover-visual ${candidate.image ? "" : candidate.visual}" ${candidate.image ? `style="background-image:url('${candidate.image}')"` : ""}></div>
     <div class="discover-body">
       <div class="meta">
         <span class="tag">${candidate.source}</span>
@@ -466,6 +476,7 @@ function voteCandidate(vote) {
       url: candidate.url,
       direction: candidate.direction,
       visual: candidate.visual,
+      image: candidate.image,
       tags: candidate.tags,
       note: candidate.note,
       image: "",

@@ -419,22 +419,48 @@ function referenceImage(item) {
   return item.image || imageForVisual(item.visual);
 }
 
+const reasonTagMap = {
+  "Типографика": ["typography", "editorial"],
+  "Фото": ["photo", "media"],
+  "Премиальность": ["premium-service", "proof"],
+  "Теплее": ["warmth", "materials"],
+  "Сетка": ["layout", "project-grid"],
+  "Материалы": ["materials", "tactile"],
+};
+
+function signalTags(item) {
+  const tags = item.tags || [];
+  const reasonTags = (item.reasons || []).flatMap((reason) => reasonTagMap[reason] || []);
+  return [...new Set([...tags, ...reasonTags])];
+}
+
 function countTags(items) {
   const counts = new Map();
   items.forEach((item) => {
-    item.tags.forEach((tag) => counts.set(tag, (counts.get(tag) || 0) + 1));
+    signalTags(item).forEach((tag) => counts.set(tag, (counts.get(tag) || 0) + 1));
   });
   return [...counts.entries()].sort((a, b) => b[1] - a[1]);
 }
 
 function getTasteSignal() {
-  const likedCandidates = state.candidates.filter((item) => item.vote === "like");
+  const likedReferences = state.references.filter((item) => item.rating === "like");
+  const dislikedReferences = state.references.filter((item) => item.rating === "dislike");
+  const referenceCandidateIds = new Set(
+    state.references
+      .filter((item) => item.id.startsWith("ref-"))
+      .map((item) => item.id.replace(/^ref-/, "")),
+  );
+  const likedCandidatesWithoutReference = state.candidates.filter(
+    (item) => item.vote === "like" && !referenceCandidateIds.has(item.id),
+  );
   const dislikedCandidates = state.candidates.filter((item) => item.vote === "dislike");
+  const likedItems = [...likedReferences, ...likedCandidatesWithoutReference];
+  const dislikedItems = [...dislikedReferences, ...dislikedCandidates];
   return {
-    likedTags: countTags(likedCandidates).slice(0, 6),
-    dislikedTags: countTags(dislikedCandidates).slice(0, 6),
-    likedCount: likedCandidates.length,
-    dislikedCount: dislikedCandidates.length,
+    likedTags: countTags(likedItems).slice(0, 6),
+    dislikedTags: countTags(dislikedItems).slice(0, 6),
+    likedCount: likedItems.length,
+    dislikedCount: dislikedItems.length,
   };
 }
 
@@ -1091,6 +1117,8 @@ function bindEvents() {
       const reference = state.references.find((item) => item.id === target.dataset.reference);
       reference.rating = reference.rating === target.dataset.rating ? "" : target.dataset.rating;
       renderReferences();
+      renderTasteSignal();
+      renderLanguage();
       saveState();
     }
 
@@ -1108,6 +1136,8 @@ function bindEvents() {
       else reasons.add(target.dataset.reason);
       reference.reasons = [...reasons];
       renderReferences();
+      renderTasteSignal();
+      renderLanguage();
       saveState();
     }
 
@@ -1239,6 +1269,8 @@ function bindEvents() {
     document.querySelector("#reference-submit").textContent = "Добавить с screenshot";
     submit.disabled = false;
     renderReferences("manual");
+    renderTasteSignal();
+    renderLanguage();
     document.querySelectorAll(".filter").forEach((filter) => {
       filter.classList.toggle("is-active", filter.dataset.filter === "manual");
     });
